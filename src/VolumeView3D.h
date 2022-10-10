@@ -59,7 +59,8 @@ private:
 	// OpenGL data
 	GLuint m_texture3d;
 	GLuint m_sliceVao, m_sliceVbo, m_sliceEbo, m_sliceInstanceVbo;
-	Shader m_sliceShader;
+	Shader m_volumeShader;
+	Shader m_volumeBoundsShader;
 
 	GLuint m_volBoundsVao, m_volBoundsVbo, m_volBoundsEbo;
 

@@ -162,8 +162,7 @@
     <ClInclude Include="src\VolumeView3D.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="shaders\slice_frag.glsl" />
-    <None Include="shaders\slice_vert.glsl" />
+    <None Include="shaders\volume_raycast_border_frag.glsl" />
     <None Include="shaders\volume_raycast_frag.glsl" />
     <None Include="shaders\volume_raycast_vert.glsl" />
   </ItemGroup>

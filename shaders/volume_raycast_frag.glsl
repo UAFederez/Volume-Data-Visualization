@@ -11,17 +11,23 @@ uniform mat4 view;
 uniform sampler3D texture3d;
 
 /**
+ * 
+ * @param r0	Ray origin
+ * @param rd	Ray direction
+ * @param p0	Plane origin
+ * @param n		Plane normal
+ * 
  * Returns a vec2 wherein:
  * x - t-value for the ray if there is an intersection
  * y - 0 if there is no intersection, 1 if there is
 **/
 vec2 TestRayIntersection(vec3 r0, vec3 rd, vec3 p0, vec3 n)
 {
-	float denom = dot(normalize(n), normalize(rd));
+	float denom = dot(n, rd);
 	if (abs(denom) < 1e-16) {
 		return vec2(1e8);
 	}
-	return vec2(dot(n, normalize(p0-r0)) / denom, 1.0f);
+	return vec2(dot(n, normalize(p0 - r0)) / denom, 1.0f);
 }
 
 void main()
@@ -87,7 +93,4 @@ void main()
 	}
 
 	FragmentColor = vec4(maxIntensity);
-	//FragmentColor = vec4((totalIntensity / numSamplesTotal) * 2.0f);
-	//FragmentColor = vec4(currPos, 1.0f);
-	//FragmentColor = vec4(1.0f);
 }

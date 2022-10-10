@@ -116,10 +116,10 @@ void VolumeView3D::OnPaint(wxPaintEvent& event)
 
 	if (m_dataset != nullptr)
 	{
-		m_sliceShader.UseProgram();
+		
 		const float viewRadius = 512.0f;
 
-		glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, m_dataset->DataSize()[2] + 256.0f);
+		glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, m_dataset->DataSize()[2] + 350.0f);
 		const float aspectRatio = (float) clientRect.width / (float) clientRect.height;
 
 		glm::vec3 volumeSize = glm::vec3( (float) m_dataset->DataSize()[0], 
@@ -128,26 +128,37 @@ void VolumeView3D::OnPaint(wxPaintEvent& event)
 		glm::vec3 volumeOrigin = 0.5f * -volumeSize;
 
 		glm::mat4 viewMatrix = glm::lookAt(cameraPos, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		glm::mat4 projMatrix = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 2048.0f);
+		glm::mat4 projMatrix = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 3072.0f);
 		glm::mat4 translate  = glm::mat4(1.0f);
 
 		glm::mat4 cameraRotation = glm::rotate(glm::mat4(1.0f), glm::radians(cameraYaw), glm::vec3(0.0f, 1.0f, 0.0f)) *
 								   glm::rotate(glm::mat4(1.0f), glm::radians(cameraPitch), glm::vec3(1.0f, 0.0f, 0.0f));
 
-		m_sliceShader.SetVector3("cameraPosition", cameraPos);
-		m_sliceShader.SetVector3("volumeOrigin", volumeOrigin);
-		m_sliceShader.SetVector3("volumeSize", volumeSize);
-
-		m_sliceShader.SetMatrix4x4("model", translate);
-		m_sliceShader.SetMatrix4x4("rotation", cameraRotation);
-		m_sliceShader.SetMatrix4x4("view", viewMatrix);
-		m_sliceShader.SetMatrix4x4("projection", projMatrix);
-		
-
-		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		glBindTexture(GL_TEXTURE_3D, m_texture3d);
 		glBindVertexArray(m_volBoundsVao);
+		m_volumeBoundsShader.UseProgram();
+		m_volumeBoundsShader.SetMatrix4x4("model", translate);
+		m_volumeBoundsShader.SetMatrix4x4("rotation", cameraRotation);
+		m_volumeBoundsShader.SetMatrix4x4("view", viewMatrix);
+		m_volumeBoundsShader.SetMatrix4x4("projection", projMatrix);
+
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+
+		m_volumeShader.UseProgram();
+		m_volumeShader.SetVector3("cameraPosition", cameraPos);
+		m_volumeShader.SetVector3("volumeOrigin", volumeOrigin);
+		m_volumeShader.SetVector3("volumeSize", volumeSize);
+
+		m_volumeShader.SetMatrix4x4("model", translate);
+		m_volumeShader.SetMatrix4x4("rotation", cameraRotation);
+		m_volumeShader.SetMatrix4x4("view", viewMatrix);
+		m_volumeShader.SetMatrix4x4("projection", projMatrix);
+
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+
+		
 	}
 	glFlush();
 	SwapBuffers();
@@ -228,7 +239,8 @@ void VolumeView3D::InitializeGraphics()
 	/**
 	 * Shaders
 	**/
-	m_sliceShader = Shader("shaders/volume_raycast_vert.glsl", "shaders/volume_raycast_frag.glsl");
+	m_volumeShader		 = Shader("shaders/volume_raycast_vert.glsl", "shaders/volume_raycast_frag.glsl");
+	m_volumeBoundsShader = Shader("shaders/volume_raycast_vert.glsl", "shaders/volume_raycast_border_frag.glsl");
 
 }    
 
