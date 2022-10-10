@@ -65,41 +65,61 @@ VolumeView3D::VolumeView3D(wxWindow* parent,
 
 void VolumeView3D::OnLeftClick(wxMouseEvent& event)
 {
+	wxRect clientRect = GetClientRect();
+
 	U32 xPos = event.GetX();
 	U32 yPos = event.GetY();
 
-	lastMouseX = xPos;
-	lastMouseY = yPos;
-
 	isMouseDown = true;
+
+	m_mouseHemi0.x =  (2.0 * xPos - clientRect.width ) / (R32) clientRect.width;
+	m_mouseHemi0.y = -(2.0 * yPos - clientRect.height) / (R32) clientRect.height;
+
+	const R32 lengthSquared = (m_mouseHemi0.x * m_mouseHemi0.x) + (m_mouseHemi0.y * m_mouseHemi0.y);
+
+	if (lengthSquared <= 1.0f)
+		m_mouseHemi0.z = std::sqrt(1 - lengthSquared);
+	else
+		m_mouseHemi0 = glm::normalize(m_mouseHemi0);
+
 	Refresh();
 }
 
 void VolumeView3D::OnLeftRelease(wxMouseEvent& event)
 {
-	isMouseDown = false;
+	isMouseDown   = false;
+	m_previousRotation = m_currentRotation;
 	Refresh();
 }
 
 void VolumeView3D::OnMouseMove(wxMouseEvent& event)
 {
-	rotation += 5.0f;
+	wxRect clientRect = GetClientRect();
 
 	if (isMouseDown)
 	{
 		U32 xPos = event.GetX();
 		U32 yPos = event.GetY();
 
-		I32 deltaX = xPos - lastMouseX;
-		I32 deltaY = yPos - lastMouseY;
+		m_mouseHemi1.x =  (2.0 * xPos - clientRect.width ) / (R32) clientRect.width;
+		m_mouseHemi1.y = -(2.0 * yPos - clientRect.height) / (R32) clientRect.height;
 
-		lastMouseX = xPos;
-		lastMouseY = yPos;
+		const R32 lengthSquared = (m_mouseHemi1.x * m_mouseHemi1.x) + (m_mouseHemi1.y * m_mouseHemi1.y);
 
-		float sensitivity = 0.25f;
+		if (lengthSquared <= 1.0f)
+			m_mouseHemi1.z = std::sqrt(1 - lengthSquared);
+		else
+			m_mouseHemi1 = glm::normalize(m_mouseHemi1);
 
-		cameraPitch += deltaY * sensitivity;
-		cameraYaw   += deltaX * sensitivity;
+		const float rotateSpeed = 75.0f;
+
+		m_rotateAxis  = glm::normalize(glm::cross(m_mouseHemi0, m_mouseHemi1));
+		m_rotateAngle = glm::acos(glm::dot(m_mouseHemi0, m_mouseHemi1)) * rotateSpeed;
+
+		m_currentRotation = glm::rotate(m_previousRotation, 
+										glm::radians(m_rotateAngle), 
+									    glm::vec3(glm::transpose(m_previousRotation) * glm::vec4(m_rotateAxis, 1.0f)));
+
 	}
 	Refresh();
 }
@@ -127,19 +147,16 @@ void VolumeView3D::OnPaint(wxPaintEvent& event)
 										  (float) m_dataset->DataSize()[2]);
 		glm::vec3 volumeOrigin = 0.5f * -volumeSize;
 
-		glm::mat4 viewMatrix = glm::lookAt(cameraPos, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		m_viewMatrix = glm::lookAt(cameraPos, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 		glm::mat4 projMatrix = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 3072.0f);
 		glm::mat4 translate  = glm::mat4(1.0f);
-
-		glm::mat4 cameraRotation = glm::rotate(glm::mat4(1.0f), glm::radians(cameraYaw), glm::vec3(0.0f, 1.0f, 0.0f)) *
-								   glm::rotate(glm::mat4(1.0f), glm::radians(cameraPitch), glm::vec3(1.0f, 0.0f, 0.0f));
 
 		glBindTexture(GL_TEXTURE_3D, m_texture3d);
 		glBindVertexArray(m_volBoundsVao);
 		m_volumeBoundsShader.UseProgram();
 		m_volumeBoundsShader.SetMatrix4x4("model", translate);
-		m_volumeBoundsShader.SetMatrix4x4("rotation", cameraRotation);
-		m_volumeBoundsShader.SetMatrix4x4("view", viewMatrix);
+		m_volumeBoundsShader.SetMatrix4x4("rotation", m_currentRotation);
+		m_volumeBoundsShader.SetMatrix4x4("view", m_viewMatrix);
 		m_volumeBoundsShader.SetMatrix4x4("projection", projMatrix);
 
 		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -151,8 +168,8 @@ void VolumeView3D::OnPaint(wxPaintEvent& event)
 		m_volumeShader.SetVector3("volumeSize", volumeSize);
 
 		m_volumeShader.SetMatrix4x4("model", translate);
-		m_volumeShader.SetMatrix4x4("rotation", cameraRotation);
-		m_volumeShader.SetMatrix4x4("view", viewMatrix);
+		m_volumeShader.SetMatrix4x4("rotation", m_currentRotation);
+		m_volumeShader.SetMatrix4x4("view", m_viewMatrix);
 		m_volumeShader.SetMatrix4x4("projection", projMatrix);
 
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
