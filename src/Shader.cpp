@@ -21,8 +21,8 @@ Shader::Shader(Shader&& shader) noexcept:
 
 Shader& Shader::operator=(Shader&& shader) noexcept
 {
-    m_isValid        = std::move(shader.m_isValid);
-    m_programId      = std::move(shader.m_programId);
+    m_isValid		 = std::move(shader.m_isValid);
+    m_programId	     = std::move(shader.m_programId);
     m_vertSourcePath = std::move(shader.m_vertSourcePath);
     m_fragSourcePath = std::move(shader.m_fragSourcePath);
 
