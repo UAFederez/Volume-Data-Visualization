@@ -24,6 +24,7 @@ public:
 
 	void UseProgram();
 	void SetMatrix4x4(const char* uniformName, const glm::mat4& mat);
+	void SetMatrix3x3(const char* uniformName, const glm::mat3& mat);
 	void SetVector3(const char* uniformName, const glm::vec3& vec);
 	void SetVector2(const char* uniformName, float f1, float f2);
 	void SetFloat(const char* uniformName, const float f);
