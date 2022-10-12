@@ -30,7 +30,13 @@
     <ClCompile Include="src\VolumeMetadataDialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\VolumeView3D.cpp">
+    <ClCompile Include="src\VolumeViewCanvas.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\VolumeViewCanvas3D.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\VolumeViewCanvas2D.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -47,7 +53,13 @@
     <ClInclude Include="src\VolumeMetadataDialog.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\VolumeView3D.h">
+    <ClInclude Include="src\VolumeViewCanvas.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\VolumeViewCanvas3D.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\VolumeViewCanvas2D.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -59,6 +71,12 @@
       <Filter>Resource Files</Filter>
     </None>
     <None Include="shaders\volume_raycast_border_frag.glsl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="shaders\volume_cross_section_vert.glsl">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="shaders\volume_cross_section_frag.glsl">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
