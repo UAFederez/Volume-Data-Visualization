@@ -3,7 +3,10 @@
 #include <wx/wx.h>
 #include <string>
 #include "VolumeDataset.h"
-#include "VolumeView3D.h"
+
+#include "VolumeViewCanvas.h"
+#include "VolumeViewCanvas3D.h"
+#include "VolumeViewCanvas2D.h"
 
 class MainWindow : public wxFrame
 {
@@ -24,10 +27,17 @@ private:
 	wxMenu*	   m_fileMenu = nullptr;
 
 	// Renderer
-	VolumeView3D* m_volumeView3d = nullptr;
+
+	VolumeViewCanvas3D* m_rootCanvas3d   = nullptr;
+	VolumeViewCanvas2D* m_sagittalView   = nullptr;
+	VolumeViewCanvas2D* m_horizontalView = nullptr;
+	VolumeViewCanvas2D* m_coronalView    = nullptr;
+
+	std::shared_ptr<wxGLContext> m_sharedContext = nullptr;
 	
 	// Dataset
-	std::unique_ptr<VolumeDataset> dataset = nullptr;
+	std::unique_ptr<VolumeDataset> m_dataset = nullptr;
+	
 };
 
 // Reserved IDs for GUI controls

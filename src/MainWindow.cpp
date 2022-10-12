@@ -20,13 +20,40 @@ MainWindow::MainWindow(const wxString& title)
 		wxEVT_COMMAND_MENU_SELECTED,
 		wxCommandEventHandler(MainWindow::OnFileOpen));
 
-	dataset.reset(new VolumeDataset("data/PVSJ_882.raw",
-									VolumeDataType::UINT8,
-									{1008, 1024, 1733}));
-	m_volumeView3d = new VolumeView3D(this, dataset.get());
+	m_dataset.reset(new VolumeDataset("data/PVSJ_882.raw", VolumeDataType::UINT8, {1008, 1024, 1733}));
 
-	Fit();
-	Centre();
+	/**
+	* The wxGLCanvas corresponding to the 3D view will represent the initial
+	* starting point or root from which the OpenGL context is created and shared
+	* among other wxGLCanvases
+	**/
+	m_rootCanvas3d  = new VolumeViewCanvas3D(this, m_dataset.get(), nullptr);
+	m_sharedContext = m_rootCanvas3d->CreateContextFromThisCanvas();
+
+	m_sagittalView   = new VolumeViewCanvas2D(this, m_dataset.get(), AnatomicalAxis::SAGITTAL, m_sharedContext);
+	m_coronalView    = new VolumeViewCanvas2D(this, m_dataset.get(), AnatomicalAxis::CORONAL, m_sharedContext);
+	m_horizontalView = new VolumeViewCanvas2D(this, m_dataset.get(), AnatomicalAxis::HORIZONTAL, m_sharedContext);
+
+	// Note: refactor data sharing to be extensible other than just the texture
+	m_sagittalView->SetTextureId(m_rootCanvas3d->GetTextureId());
+	m_coronalView->SetTextureId(m_rootCanvas3d->GetTextureId());
+	m_horizontalView->SetTextureId(m_rootCanvas3d->GetTextureId());
+
+	wxBoxSizer* rootSizer = new wxBoxSizer(wxHORIZONTAL);
+	wxBoxSizer* viewContainerSizer = new wxBoxSizer(wxVERTICAL);
+	wxBoxSizer* bottomViewsSizer   = new wxBoxSizer(wxHORIZONTAL);
+
+	bottomViewsSizer->Add(m_sagittalView, 1, wxEXPAND);
+	bottomViewsSizer->Add(m_coronalView, 1, wxEXPAND);
+	bottomViewsSizer->Add(m_horizontalView, 1, wxEXPAND);
+	
+	viewContainerSizer->Add(m_rootCanvas3d, 1, wxEXPAND);
+	viewContainerSizer->Add(bottomViewsSizer, 1, wxEXPAND);
+
+	//rootSizer->Add(new wxPanel(this, wxID_ANY), 1, wxEXPAND);
+	rootSizer->Add(viewContainerSizer, 4, wxEXPAND);
+
+	SetSizerAndFit(rootSizer);
 }
 
 void MainWindow::OnQuit(wxCommandEvent& WXUNUSED(event))
@@ -36,18 +63,32 @@ void MainWindow::OnQuit(wxCommandEvent& WXUNUSED(event))
 
 void MainWindow::OnLoadDataset(const char* path)
 {
-	m_volumeView3d->UpdateDataset(dataset.get());
+	bool isValid = true;
+
+	// TODO: metadata validation
+
+	if (isValid)
+	{
+		m_rootCanvas3d->UpdateDataset(m_dataset.get());
+		m_sagittalView->UpdateDataset(m_dataset.get());
+		m_coronalView->UpdateDataset(m_dataset.get());
+		m_horizontalView->UpdateDataset(m_dataset.get());
+	}
 }
 
 void MainWindow::OnFileOpen(wxCommandEvent& WXUNUSED(event))
 {
 	wxFileDialog* fileDialog = new wxFileDialog(this);
-	if (fileDialog->ShowModal() == wxID_OK) 
+	VolumeMetadataDialog* metadataDlg = new VolumeMetadataDialog(wxString("Please specify the metadata"));
+	if (fileDialog->ShowModal() == wxID_OK)
 	{
 		wxString fileName = fileDialog->GetPath();
-		OnLoadDataset(fileName.c_str());
-		// VolumeMetadataDialog* metadataDlg = new VolumeMetadataDialog(wxString("Please specify the metadata"));
-		// metadataDlg->Show(true);
-		wxLogMessage(fileName);
+		if (metadataDlg->ShowModal() == wxID_OK)
+		{
+			OnLoadDataset(fileName.c_str());
+			wxLogMessage(fileName);
+		}
 	}
+	fileDialog->Destroy();
+	metadataDlg->Destroy();
 }
