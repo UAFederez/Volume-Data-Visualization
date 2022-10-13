@@ -28,6 +28,7 @@ private:
     void HandleLeftClick(wxMouseEvent& evt);
     void HandleLeftRelease(wxMouseEvent& evt);
     void HandleMouseMove(wxMouseEvent& evt);
+    void HandleMouseScroll(wxMouseEvent& evt);
 
     VolumeBounds m_volumeBounds = {};
     GLuint m_volBoundsVao, m_volBoundsVbo, m_volBoundsEbo;
@@ -40,12 +41,16 @@ private:
     **/
     bool isMouseDown = false;
 
+    // Camera
+    glm::vec3 m_cameraPos = glm::vec3(0.0f);
+
     // Trackball-style rotation
     glm::vec3 m_mouseHemi0 = glm::vec3(0.0f);
     glm::vec3 m_mouseHemi1 = glm::vec3(0.0f);
     glm::vec3 m_rotateAxis = glm::vec3(1.0f);
     glm::mat4 m_previousRotation = glm::mat4(1.0f);
     glm::mat4 m_currentRotation  = glm::mat4(1.0f);
+
     float m_rotateAngle = 0.0f;
 };
 

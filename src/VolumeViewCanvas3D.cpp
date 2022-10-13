@@ -4,15 +4,29 @@ VolumeViewCanvas3D::VolumeViewCanvas3D(
 	wxWindow* parent, VolumeDataset* dataset, std::shared_ptr<wxGLContext> context) :
 	VolumeViewCanvas(parent, dataset, context)
 {
-	Bind(wxEVT_PAINT	, [=](wxPaintEvent& e) { Render(e);            } , GetId());
-	Bind(wxEVT_LEFT_DOWN, [=](wxMouseEvent& e) { HandleLeftClick(e);   } , GetId());
-	Bind(wxEVT_LEFT_UP  , [=](wxMouseEvent& e) { HandleLeftRelease(e); } , GetId());
-	Bind(wxEVT_MOTION   , [=](wxMouseEvent& e) { HandleMouseMove(e);   } , GetId());
+	Bind(wxEVT_PAINT	 , [=](wxPaintEvent& e) { Render(e);            } , GetId());
+	Bind(wxEVT_LEFT_DOWN , [=](wxMouseEvent& e) { HandleLeftClick(e);   } , GetId());
+	Bind(wxEVT_LEFT_UP   , [=](wxMouseEvent& e) { HandleLeftRelease(e); } , GetId());
+	Bind(wxEVT_MOTION    , [=](wxMouseEvent& e) { HandleMouseMove(e);   } , GetId());
+	Bind(wxEVT_MOUSEWHEEL, [=](wxMouseEvent& e) { HandleMouseScroll(e);   } , GetId());
 
 	if (m_dataset != nullptr)
 		m_volumeBounds = ConstructVolumeBoundsFromDataset(m_dataset);
 
 	Init();
+}
+
+void VolumeViewCanvas3D::HandleMouseScroll(wxMouseEvent& evt)
+{
+	I32 rotation   = evt.GetWheelRotation();
+	const float SPEED    = 5.0f;
+	const float MIN_DIST = m_dataset->DataSize()[2];
+	const float MAX_DIST = MIN_DIST + 350.0f;
+
+	m_cameraPos.z += (m_dataset->DataSize()[2] / std::max(SPEED, 1.0f)) * (rotation > 0 ? -1.0f : 1.0f);
+	m_cameraPos.z  = std::max(MIN_DIST, std::min(m_cameraPos.z, MAX_DIST));
+
+	Refresh();
 }
 
 void VolumeViewCanvas3D::Init()
@@ -93,6 +107,9 @@ void VolumeViewCanvas3D::Init()
 	m_volumeShader		 = Shader("shaders/volume_raycast_vert.glsl", "shaders/volume_raycast_frag.glsl");
 	m_volumeBoundsShader = Shader("shaders/volume_raycast_vert.glsl", "shaders/volume_raycast_border_frag.glsl");
 
+	// Initialize camera position
+	m_cameraPos = glm::vec3(0.0f, 0.0f, m_dataset->DataSize()[2] + 350.0f);
+
 	Refresh();
 }
 
@@ -111,7 +128,7 @@ void VolumeViewCanvas3D::Render(wxPaintEvent& evt)
 	{
 		const float viewRadius = 512.0f;
 
-		glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, m_dataset->DataSize()[2] + 350.0f);
+		
 		const float aspectRatio = (float) clientRect.width / (float) clientRect.height;
 
 		glm::vec3 volumeSize = glm::vec3( (float) m_dataset->DataSize()[0], 
@@ -119,8 +136,8 @@ void VolumeViewCanvas3D::Render(wxPaintEvent& evt)
 										  (float) m_dataset->DataSize()[2]);
 		glm::vec3 volumeOrigin = 0.5f * -volumeSize;
 
-		glm::mat4 viewMatrix = glm::lookAt(cameraPos, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-		glm::mat4 projMatrix = glm::perspective(glm::radians(45.0f), aspectRatio, 0.1f, 3072.0f);
+		glm::mat4 viewMatrix = glm::lookAt(m_cameraPos, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
+		glm::mat4 projMatrix = glm::perspective(glm::radians(50.0f), aspectRatio, 0.1f, 3072.0f);
 		glm::mat4 translate  = glm::mat4(1.0f);
 
 		glBindTexture(GL_TEXTURE_3D, m_textureId);
@@ -135,7 +152,7 @@ void VolumeViewCanvas3D::Render(wxPaintEvent& evt)
 		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 
 		m_volumeShader.UseProgram();
-		m_volumeShader.SetVector3("cameraPosition", cameraPos);
+		m_volumeShader.SetVector3("cameraPosition", m_cameraPos);
 		m_volumeShader.SetVector3("volumeOrigin", volumeOrigin);
 		m_volumeShader.SetVector3("volumeSize", volumeSize);
 
