@@ -52,10 +52,10 @@ void VolumeViewCanvas2D::Init()
 	}
 
 	float quadVertices[] = {
-		0.0f, 0.0f, 0.0f, 0.0f, // lower left
-		1.0f, 0.0f, 1.0f, 0.0f, // lower right
-		1.0f, 1.0f, 1.0f, 1.0f, // upper right
-		0.0f, 1.0f, 0.0f, 1.0f, // upper left
+		0.0f, 0.0f, 0.0f, 1.0f, // lower left
+		1.0f, 0.0f, 1.0f, 1.0f, // lower right
+		1.0f, 1.0f, 1.0f, 0.0f, // upper right
+		0.0f, 1.0f, 0.0f, 0.0f, // upper left
 	};
 	
 	unsigned int indices[] = {
