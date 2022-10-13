@@ -1,32 +1,36 @@
 #include "VolumeMetadataDialog.h"
 
-#include <wx/spinctrl.h>
-
 VolumeMetadataDialog::VolumeMetadataDialog(const wxString& title)
 	: wxDialog(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(320, 320))
 {
 	wxBoxSizer* rootSizer = new wxBoxSizer(wxVERTICAL);
 
 	// Width input
-	wxSpinCtrl* widthInput = new wxSpinCtrl(this, wxID_ANY);
+	m_widthInput = new wxSpinCtrl(this, wxID_ANY);
+	m_widthInput->SetMin(0);
+	m_widthInput->SetMax(std::numeric_limits<I32>::max());
 	wxBoxSizer* widthInputSizer = new wxBoxSizer(wxHORIZONTAL);
 
 	widthInputSizer->Add(new wxStaticText(this, wxID_ANY, "Width:"), 3, wxEXPAND);
-	widthInputSizer->Add(widthInput, 9, wxEXPAND);
+	widthInputSizer->Add(m_widthInput, 9, wxEXPAND);
 
 	// Height input
-	wxSpinCtrl* heightInput = new wxSpinCtrl(this, wxID_ANY);
+	m_heightInput = new wxSpinCtrl(this, wxID_ANY);
+	m_heightInput->SetMin(0);
+	m_heightInput->SetMax(std::numeric_limits<I32>::max());
 	wxBoxSizer* heightInputSizer = new wxBoxSizer(wxHORIZONTAL);
 
 	heightInputSizer->Add(new wxStaticText(this, wxID_ANY, "Height:"), 3, wxEXPAND);
-	heightInputSizer->Add(heightInput, 9, wxEXPAND);
+	heightInputSizer->Add(m_heightInput, 9, wxEXPAND);
 
 	// Depth input
-	wxSpinCtrl* depthInput = new wxSpinCtrl(this, wxID_ANY);
+	m_depthInput = new wxSpinCtrl(this, wxID_ANY);
+	m_depthInput->SetMin(0);
+	m_depthInput->SetMax(std::numeric_limits<I32>::max());
 	wxBoxSizer* depthInputSizer = new wxBoxSizer(wxHORIZONTAL);
 
 	depthInputSizer->Add(new wxStaticText(this, wxID_ANY, "Depth:"), 3, wxEXPAND);
-	depthInputSizer->Add(depthInput, 9, wxEXPAND);
+	depthInputSizer->Add(m_depthInput, 9, wxEXPAND);
 
 	// Data type input
 	wxBoxSizer* typeInputSizer = new wxBoxSizer(wxHORIZONTAL);
