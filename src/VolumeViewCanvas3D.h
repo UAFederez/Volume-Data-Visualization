@@ -15,14 +15,14 @@ struct VolumeBounds
 class VolumeViewCanvas3D final : public VolumeViewCanvas
 {
 public:
-    VolumeViewCanvas3D(wxWindow* parent, VolumeDataset* dataset, std::shared_ptr<wxGLContext> context);
+    VolumeViewCanvas3D(wxWindow* parent, const std::shared_ptr<VolumeModel> model);
 
     virtual ~VolumeViewCanvas3D() { Deallocate(); }
 
-protected:
-    void Deallocate() override;
     void Init() override;
 
+protected:
+    void Deallocate() override;
 private:
     void Render(wxPaintEvent& evt);
     void HandleLeftClick(wxMouseEvent& evt);

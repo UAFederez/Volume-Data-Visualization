@@ -1,56 +1,55 @@
 #include "VolumeViewCanvas2D.h"
 
-
 VolumeViewCanvas2D::VolumeViewCanvas2D(
-	wxWindow* parent    ,  VolumeDataset* dataset,
-	AnatomicalAxis axis ,  std::shared_ptr<wxGLContext> context) :
-	VolumeViewCanvas(parent, dataset, context),
+	wxWindow* parent    ,  const std::shared_ptr<VolumeModel> model, AnatomicalAxis axis) :
+	VolumeViewCanvas(parent, model),
 	m_axis(axis)
 {
-	Bind(wxEVT_PAINT	, [=](wxPaintEvent& e) { Render(e);            } , GetId());
-	Bind(wxEVT_LEFT_DOWN, [=](wxMouseEvent& e) { HandleLeftClick(e);   } , GetId());
-	Bind(wxEVT_LEFT_UP  , [=](wxMouseEvent& e) { HandleLeftRelease(e); } , GetId());
-	Bind(wxEVT_MOTION   , [=](wxMouseEvent& e) { HandleMouseMove(e);   } , GetId());
-	Bind(wxEVT_MOUSEWHEEL   , [=](wxMouseEvent& e) { HandleMouseScroll(e);   } , GetId());
+	Bind(wxEVT_PAINT	 , [=](wxPaintEvent& e) { Render(e);            } , GetId());
+	Bind(wxEVT_LEFT_DOWN , [=](wxMouseEvent& e) { HandleLeftClick(e);   } , GetId());
+	Bind(wxEVT_LEFT_UP   , [=](wxMouseEvent& e) { HandleLeftRelease(e); } , GetId());
+	Bind(wxEVT_MOTION    , [=](wxMouseEvent& e) { HandleMouseMove(e);   } , GetId());
+	Bind(wxEVT_MOUSEWHEEL, [=](wxMouseEvent& e) { HandleMouseScroll(e);   } , GetId());
 	Init();
 }
 
 void VolumeViewCanvas2D::HandleMouseScroll(wxMouseEvent& evt)
 {
-	I32 rotation = evt.GetWheelRotation();
-	U32 extent   = 0;
-
-	switch (m_axis)
-	{
-		case AnatomicalAxis::CORONAL:
-		{
-			extent = m_dataset->DataSize()[2];
-		}
-		break;
-		case AnatomicalAxis::SAGITTAL:
-		{
-			extent = m_dataset->DataSize()[0];
-		}
-		break;
-		case AnatomicalAxis::HORIZONTAL:
-		{
-			extent = m_dataset->DataSize()[1];
-		}
-		break;
-	}
-
-	m_sliceOffset += (1.0f / (float) extent) * (rotation > 0 ? 1.0f : -1.0f);
-	m_sliceOffset  = std::min((float) 1.0f, std::max(0.0f, m_sliceOffset));
+	// TODO: Zoom
 	Refresh();
 }
 
 void VolumeViewCanvas2D::Init()
 {
-	if(m_glContext == nullptr) return;
+	if(m_volumeModel->m_sharedContext.get() == nullptr) return;
 
-	SetCurrent(*m_glContext);
+	SetCurrent(*m_volumeModel->m_sharedContext);
 
-	if (m_dataset == nullptr) return;
+	if(m_volumeModel->m_dataset.get() == nullptr) return;
+
+	if (m_hasPreviousData)
+	{
+		Deallocate();
+	}
+
+	switch (m_axis)
+	{
+		case AnatomicalAxis::CORONAL:
+		{
+			m_sliceExtent = m_volumeModel->m_dataset->DataSize()[2];
+		}
+		break;
+		case AnatomicalAxis::SAGITTAL:
+		{
+			m_sliceExtent = m_volumeModel->m_dataset->DataSize()[0];
+		}
+		break;
+		case AnatomicalAxis::HORIZONTAL:
+		{
+			m_sliceExtent = m_volumeModel->m_dataset->DataSize()[1];
+		}
+		break;
+	}
 
 	float quadVertices[] = {
 		0.0f, 0.0f, 0.0f, 0.0f, // lower left
@@ -90,7 +89,7 @@ void VolumeViewCanvas2D::Init()
 
 void VolumeViewCanvas2D::Render(wxPaintEvent& evt)
 {
-	SetCurrent(*m_glContext);
+	SetCurrent(*m_volumeModel->m_sharedContext);
 
 	wxRect clientRect = GetClientRect();
 
@@ -104,11 +103,13 @@ void VolumeViewCanvas2D::Render(wxPaintEvent& evt)
 	glm::vec3 y_perm_col = glm::vec3(0.0f);
 	glm::vec3 z_perm_col = glm::vec3(0.0f);
 
-	switch(m_axis)
+	if (m_volumeModel->m_dataset != nullptr)
 	{
+		switch(m_axis)
+		{
 		case AnatomicalAxis::CORONAL:
 		{
-			dimensions = glm::vec2(m_dataset->DataSize()[0], m_dataset->DataSize()[1]);
+			dimensions = glm::vec2(m_volumeModel->m_dataset->DataSize()[0], m_volumeModel->m_dataset->DataSize()[1]);
 
 			// [ x, y, z ] -> [ x, y, z ]
 			x_perm_col = glm::vec3(1.0f, 0.0f, 0.0f);
@@ -118,7 +119,7 @@ void VolumeViewCanvas2D::Render(wxPaintEvent& evt)
 		break;
 		case AnatomicalAxis::SAGITTAL:
 		{
-			dimensions = glm::vec2(m_dataset->DataSize()[2], m_dataset->DataSize()[1]);
+			dimensions = glm::vec2(m_volumeModel->m_dataset->DataSize()[2], m_volumeModel->m_dataset->DataSize()[1]);
 
 			// [ x, y, z ] -> [ z, y, x ]
 			x_perm_col = glm::vec3(0.0f, 0.0f, 1.0f);
@@ -128,7 +129,7 @@ void VolumeViewCanvas2D::Render(wxPaintEvent& evt)
 		break;
 		case AnatomicalAxis::HORIZONTAL:
 		{
-			dimensions = glm::vec2(m_dataset->DataSize()[0], m_dataset->DataSize()[2]);
+			dimensions = glm::vec2(m_volumeModel->m_dataset->DataSize()[0], m_volumeModel->m_dataset->DataSize()[2]);
 
 			// [ x, y, z ] -> [ x, z, y ]
 			x_perm_col = glm::vec3(1.0f, 0.0f, 0.0f);
@@ -136,51 +137,56 @@ void VolumeViewCanvas2D::Render(wxPaintEvent& evt)
 			z_perm_col = glm::vec3(0.0f, 1.0f, 0.0f);
 		}
 		break;
+		}
+		glm::mat3 permutationMatrix = glm::mat3(x_perm_col, y_perm_col, z_perm_col);
+		const U32 padding = 10;
+		glDisable(GL_DEPTH_TEST);
+
+		if (m_volumeModel->m_dataset != nullptr)
+		{
+			const float scaleFactor = dimensions.x > dimensions.y ? 
+				((float) (clientRect.width) / dimensions.x) :
+				((float) (clientRect.height) / dimensions.y);
+
+			const float minDimension = std::min(clientRect.width, clientRect.height);
+			const glm::vec3 scaleVec = glm::vec3(dimensions.x * scaleFactor, dimensions.y * scaleFactor, 1.0f);
+
+			glm::mat4 modelMatrix = glm::scale(glm::mat4(1.0f), scaleVec);
+			glm::mat4 viewMatrix  = glm::translate(
+				glm::mat4(1.0f),
+				glm::vec3(
+					(float) ((clientRect.width) - scaleVec.x) / 2.0f,
+					(float) ((clientRect.height) - scaleVec.y) / 2.0f,
+					0.0f
+				)
+			);
+
+
+			glm::mat4 projMatrix  = glm::ortho(0.0f, (float) clientRect.width, (float) clientRect.height, 0.0f, -1.0f, 1.0f);
+
+			m_imageShader.UseProgram();
+			m_imageShader.SetMatrix4x4("model", modelMatrix);
+			m_imageShader.SetMatrix4x4("view", viewMatrix);
+			m_imageShader.SetMatrix4x4("projection", projMatrix);
+
+			m_imageShader.SetMatrix3x3("uvPermutation", permutationMatrix);
+			m_imageShader.SetFloat("sliceOffset", (float) m_sliceIndex / (float) m_sliceExtent);
+
+			glBindTexture(GL_TEXTURE_3D, m_volumeModel->m_texture.GetTextureID());
+			glBindVertexArray(m_imageVao);
+			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
+		}
 	}
-	glm::mat3 permutationMatrix = glm::mat3(x_perm_col, y_perm_col, z_perm_col);
-	const U32 padding = 10;
-	glDisable(GL_DEPTH_TEST);
-
-	if (m_dataset != nullptr)
-	{
-		const float scaleFactor = dimensions.x > dimensions.y ? 
-								  ((float) (clientRect.width - padding) / dimensions.x) :
-								  ((float) (clientRect.height - padding) / dimensions.y);
-		
-		const float minDimension = std::min(clientRect.width - padding, clientRect.height - padding);
-		const glm::vec3 scaleVec = glm::vec3(dimensions.x * scaleFactor, dimensions.y * scaleFactor, 1.0f);
-
-		glm::mat4 modelMatrix = glm::scale(glm::mat4(1.0f), scaleVec);
-		glm::mat4 viewMatrix  = glm::translate(
-			glm::mat4(1.0f),
-			glm::vec3(
-				(float) ((clientRect.width  - padding) - scaleVec.x) / 2.0f,
-				(float) ((clientRect.height - padding) - scaleVec.y) / 2.0f,
-				0.0f
-			)
-		);
-
-
-		glm::mat4 projMatrix  = glm::ortho(0.0f, (float) clientRect.width, (float) clientRect.height, 0.0f, -1.0f, 1.0f);
-
-		m_imageShader.UseProgram();
-		m_imageShader.SetMatrix4x4("model", modelMatrix);
-		m_imageShader.SetMatrix4x4("view", viewMatrix);
-		m_imageShader.SetMatrix4x4("projection", projMatrix);
-
-		m_imageShader.SetMatrix3x3("uvPermutation", permutationMatrix);
-		m_imageShader.SetFloat("sliceOffset", m_sliceOffset);
-
-		glBindTexture(GL_TEXTURE_3D, m_textureId);
-		glBindVertexArray(m_imageVao);
-		glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
-	}
+	glFlush();
 	SwapBuffers();
 }
 
 void VolumeViewCanvas2D::Deallocate()
 {
-	SetCurrent(*m_glContext);
+	m_sliceIndex  = 0;
+	m_sliceExtent = 0;
+
+	SetCurrent(*m_volumeModel->m_sharedContext);
 	glDeleteVertexArrays(1, &m_imageVao);
 	glDeleteBuffers(1, &m_imageVbo);
 	glDeleteBuffers(1, &m_imageEbo);

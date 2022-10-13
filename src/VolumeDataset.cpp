@@ -1,6 +1,8 @@
 #include "VolumeDataset.h"
 
 #include <fstream>
+#include <filesystem>
+#include <iostream>
 #include <thread>
 
 VolumeDataset::VolumeDataset(const std::string& path, 
@@ -17,9 +19,14 @@ void VolumeDataset::ReadVolumeDatasetFile(const std::string& path)
 {
 	std::ifstream inputFile(path, std::ios::binary);
 	if(!inputFile)
-		throw std::runtime_error("File not found: " + path);
+		throw std::exception(std::string(std::string("File not found: ") + path).c_str());
 
+	std::uintmax_t size = std::filesystem::file_size(path);
+	
 	const U64 totalSize = (U64) dataSize[0] * dataSize[1] * dataSize[2];
+
+	if (size != totalSize)	// TODO: Account for non-uint8 files 
+		throw std::exception("Invalid size specified");
 
 	rawBytes.resize(totalSize);
 	inputFile.read(reinterpret_cast<char*>(rawBytes.data()), totalSize);

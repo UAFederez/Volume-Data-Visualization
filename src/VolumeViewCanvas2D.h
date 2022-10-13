@@ -10,15 +10,23 @@ class VolumeViewCanvas2D final : public VolumeViewCanvas
 {
 public:
     VolumeViewCanvas2D(wxWindow* parent, 
-        VolumeDataset* dataset, 
-        AnatomicalAxis axis,
-        std::shared_ptr<wxGLContext> context);
+        const std::shared_ptr<VolumeModel> model, 
+        AnatomicalAxis axis);
 
     virtual ~VolumeViewCanvas2D() { Deallocate(); }
+    virtual void Init() override;
+
+    void UpdateSliceOffset(U32 newSliceIndex)
+    {
+        m_sliceIndex  = std::min(m_sliceExtent, std::max(0u, newSliceIndex));
+        Refresh();
+    }
+
+    U32 GetSliceExtent() const { return m_sliceExtent; }
 
 protected:
     virtual void Deallocate() override;
-    virtual void Init() override;
+    
 
 private:
     void Render(wxPaintEvent& evt);
@@ -27,7 +35,8 @@ private:
     void HandleMouseMove(wxMouseEvent& evt);
     void HandleMouseScroll(wxMouseEvent& evt);
 
-    float m_sliceOffset = 0.0f;
+    U32 m_sliceIndex  = 0;
+    U32 m_sliceExtent = 0;
 
     GLuint m_imageVao, m_imageVbo, m_imageEbo;
     Shader m_imageShader;

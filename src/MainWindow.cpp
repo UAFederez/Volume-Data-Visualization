@@ -20,32 +20,53 @@ MainWindow::MainWindow(const wxString& title)
 		wxEVT_COMMAND_MENU_SELECTED,
 		wxCommandEventHandler(MainWindow::OnFileOpen));
 
-	m_dataset.reset(new VolumeDataset("data/PVSJ_882.raw", VolumeDataType::UINT8, {1008, 1024, 1733}));
+	InitializeVolumeModel();
 
-	/**
-	* The wxGLCanvas corresponding to the 3D view will represent the initial
-	* starting point or root from which the OpenGL context is created and shared
-	* among other wxGLCanvases
-	**/
-	m_rootCanvas3d  = new VolumeViewCanvas3D(this, m_dataset.get(), nullptr);
-	m_sharedContext = m_rootCanvas3d->CreateContextFromThisCanvas();
+	wxBoxSizer* sagittalPanelSizer    = new wxBoxSizer(wxVERTICAL);
+	wxBoxSizer* sagittalControlsSizer = new wxBoxSizer(wxHORIZONTAL);
+	m_sagittalViewSlider = new wxSlider(this, wxID_ANY, 0, 0, 100);
+	m_sagittalView       = new VolumeViewCanvas2D(this, m_volumeModel, AnatomicalAxis::SAGITTAL);
 
-	m_sagittalView   = new VolumeViewCanvas2D(this, m_dataset.get(), AnatomicalAxis::SAGITTAL, m_sharedContext);
-	m_coronalView    = new VolumeViewCanvas2D(this, m_dataset.get(), AnatomicalAxis::CORONAL, m_sharedContext);
-	m_horizontalView = new VolumeViewCanvas2D(this, m_dataset.get(), AnatomicalAxis::HORIZONTAL, m_sharedContext);
+	sagittalControlsSizer->Add(new wxStaticText(this, wxID_ANY, "Sagittal"), 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 5);
+	sagittalControlsSizer->Add(m_sagittalViewSlider, 1, wxEXPAND, 5);
+	m_sagittalViewSlider->Disable();
 
-	// Note: refactor data sharing to be extensible other than just the texture
-	m_sagittalView->SetTextureId(m_rootCanvas3d->GetTextureId());
-	m_coronalView->SetTextureId(m_rootCanvas3d->GetTextureId());
-	m_horizontalView->SetTextureId(m_rootCanvas3d->GetTextureId());
+	sagittalPanelSizer->Add(sagittalControlsSizer, 0, wxEXPAND);
+	sagittalPanelSizer->Add(m_sagittalView, 1, wxEXPAND);
+
+	wxBoxSizer* coronalPanelSizer    = new wxBoxSizer(wxVERTICAL);
+	wxBoxSizer* coronalControlsSizer = new wxBoxSizer(wxHORIZONTAL);
+	m_coronalViewSlider = new wxSlider(this, wxID_ANY, 0, 0, 100);
+	m_coronalView       = new VolumeViewCanvas2D(this, m_volumeModel, AnatomicalAxis::CORONAL);
+
+	coronalControlsSizer->Add(new wxStaticText(this, wxID_ANY, "Coronal"), 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 5);
+	coronalControlsSizer->Add(m_coronalViewSlider, 1, wxEXPAND, 5);
+	m_coronalViewSlider->Disable();
+
+	coronalPanelSizer->Add(coronalControlsSizer, 0, wxEXPAND);
+	coronalPanelSizer->Add(m_coronalView, 1, wxEXPAND);
+
+	wxBoxSizer* horizontalPanelSizer    = new wxBoxSizer(wxVERTICAL);
+	wxBoxSizer* horizontalControlsSizer = new wxBoxSizer(wxHORIZONTAL);
+	m_horizontalViewSlider = new wxSlider(this, wxID_ANY, 0, 0, 100);
+	m_horizontalView       = new VolumeViewCanvas2D(this, m_volumeModel, AnatomicalAxis::HORIZONTAL);
+
+	horizontalControlsSizer->Add(new wxStaticText(this, wxID_ANY, "Horizontal"), 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 5);
+	horizontalControlsSizer->Add(m_horizontalViewSlider, 1, wxEXPAND, 5);
+	m_horizontalViewSlider->Disable();
+
+	horizontalPanelSizer->Add(horizontalControlsSizer, 0, wxEXPAND);
+	horizontalPanelSizer->Add(m_horizontalView, 1, wxEXPAND);
+
+	m_rootCanvas3d   = new VolumeViewCanvas3D(this, m_volumeModel);
 
 	wxBoxSizer* rootSizer = new wxBoxSizer(wxHORIZONTAL);
 	wxBoxSizer* viewContainerSizer = new wxBoxSizer(wxVERTICAL);
 	wxBoxSizer* bottomViewsSizer   = new wxBoxSizer(wxHORIZONTAL);
 
-	bottomViewsSizer->Add(m_sagittalView, 1, wxEXPAND);
-	bottomViewsSizer->Add(m_coronalView, 1, wxEXPAND);
-	bottomViewsSizer->Add(m_horizontalView, 1, wxEXPAND);
+	bottomViewsSizer->Add(sagittalPanelSizer, 1, wxEXPAND);
+	bottomViewsSizer->Add(coronalPanelSizer, 1, wxEXPAND);
+	bottomViewsSizer->Add(horizontalPanelSizer, 1, wxEXPAND);
 	
 	viewContainerSizer->Add(m_rootCanvas3d, 1, wxEXPAND);
 	viewContainerSizer->Add(bottomViewsSizer, 1, wxEXPAND);
@@ -56,23 +77,77 @@ MainWindow::MainWindow(const wxString& title)
 	SetSizerAndFit(rootSizer);
 }
 
+void MainWindow::InitializeVolumeModel()
+{
+	wxGLCanvas * canvas = new wxGLCanvas(this, wxID_ANY);
+	
+	m_volumeModel = std::make_shared<VolumeModel>();
+	
+	m_volumeModel->m_sharedContext = std::make_shared<wxGLContext>(canvas);
+	m_volumeModel->m_dataset		  = nullptr;
+	m_volumeModel->m_texture		  = {};
+
+	canvas->SetCurrent(*m_volumeModel->m_sharedContext);
+
+	glewExperimental = GL_TRUE;
+	GLenum status    = glewInit();
+	if (status != GLEW_OK)
+	{
+		const GLubyte* msg = glewGetErrorString(status);
+		throw std::exception(reinterpret_cast<const char*>(msg));
+	}
+
+	canvas->Destroy();
+}
+
+void MainWindow::UpdateVolumeModel(VolumeDataset* dataset)
+{
+	m_volumeModel->UpdateDataset(dataset, this);
+	bool isValid = true;
+
+	if (isValid)
+	{
+		m_rootCanvas3d->Init();
+		m_sagittalView->Init();
+		m_coronalView->Init();
+		m_horizontalView->Init();
+	}
+
+	m_sagittalViewSlider->SetValue(0);
+	m_sagittalViewSlider->SetMax(m_sagittalView->GetSliceExtent());
+	m_sagittalViewSlider->Enable();
+	m_sagittalViewSlider->Bind(wxEVT_SLIDER, [&](const wxCommandEvent& e) {
+		m_sagittalView->UpdateSliceOffset(m_sagittalViewSlider->GetValue());
+	});
+
+	m_coronalViewSlider->SetValue(0);
+	m_coronalViewSlider->SetMax(m_coronalView->GetSliceExtent());
+	m_coronalViewSlider->Enable();
+	m_horizontalViewSlider->Bind(wxEVT_SLIDER, [&](const wxCommandEvent& e) {
+		m_horizontalView->UpdateSliceOffset(m_horizontalViewSlider->GetValue());
+	});
+
+	m_horizontalViewSlider->SetValue(0);
+	m_horizontalViewSlider->SetMax(m_horizontalView->GetSliceExtent());
+	m_horizontalViewSlider->Enable();
+	m_coronalViewSlider->Bind(wxEVT_SLIDER, [&](const wxCommandEvent& e) {
+		m_coronalView->UpdateSliceOffset(m_coronalViewSlider->GetValue());
+	});
+}
+
 void MainWindow::OnQuit(wxCommandEvent& WXUNUSED(event))
 {
 	Close(true);
 }
 
-void MainWindow::OnLoadDataset(const char* path)
+void MainWindow::OnLoadDataset(const char* path, const U32 width, const U32 height, const U32 depth)
 {
-	bool isValid = true;
-
-	// TODO: metadata validation
-
-	if (isValid)
-	{
-		m_rootCanvas3d->UpdateDataset(m_dataset.get());
-		m_sagittalView->UpdateDataset(m_dataset.get());
-		m_coronalView->UpdateDataset(m_dataset.get());
-		m_horizontalView->UpdateDataset(m_dataset.get());
+	try {
+		VolumeDataset* dataset = new VolumeDataset(path, VolumeDataType::UINT8, {width, height, depth});
+		UpdateVolumeModel(dataset);
+	}
+	catch (std::exception& e) {
+		wxLogMessage("%s", e.what());
 	}
 }
 
@@ -85,8 +160,7 @@ void MainWindow::OnFileOpen(wxCommandEvent& WXUNUSED(event))
 		wxString fileName = fileDialog->GetPath();
 		if (metadataDlg->ShowModal() == wxID_OK)
 		{
-			OnLoadDataset(fileName.c_str());
-			wxLogMessage(fileName);
+			OnLoadDataset(fileName.c_str(), metadataDlg->GetWidthInput(), metadataDlg->GetHeightInput(), metadataDlg->GetDepthInput());
 		}
 	}
 	fileDialog->Destroy();

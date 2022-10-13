@@ -20,24 +20,33 @@ public:
 
 	void OnQuit	   (wxCommandEvent& evt);
 	void OnFileOpen(wxCommandEvent& evt);
-	void OnLoadDataset(const char* path);
+	void OnLoadDataset(const char* path, const U32 width, const U32 height, const U32 depth);
 private:
 	// Menu bar 
 	wxMenuBar* m_menuBar  = nullptr;
 	wxMenu*	   m_fileMenu = nullptr;
 
-	// Renderer
+	GLuint m_textureId;
 
+	void InitializeVolumeModel();
+	void UpdateVolumeModel(VolumeDataset* newDataset);
+
+	std::shared_ptr<VolumeModel> m_volumeModel = {};
+
+	// Renderer
+	VolumeViewCanvas*   m_rootCanvas     = nullptr;
 	VolumeViewCanvas3D* m_rootCanvas3d   = nullptr;
 	VolumeViewCanvas2D* m_sagittalView   = nullptr;
 	VolumeViewCanvas2D* m_horizontalView = nullptr;
 	VolumeViewCanvas2D* m_coronalView    = nullptr;
+	
+	wxPanel* m_sagittalViewPanel   = nullptr;
+	wxPanel* m_coronalViewPanel    = nullptr;
+	wxPanel* m_horizontalViewPanel = nullptr;
 
-	std::shared_ptr<wxGLContext> m_sharedContext = nullptr;
-	
-	// Dataset
-	std::unique_ptr<VolumeDataset> m_dataset = nullptr;
-	
+	wxSlider* m_sagittalViewSlider   = nullptr;
+	wxSlider* m_coronalViewSlider    = nullptr;
+	wxSlider* m_horizontalViewSlider = nullptr;
 };
 
 // Reserved IDs for GUI controls
