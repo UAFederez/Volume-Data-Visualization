@@ -45,7 +45,7 @@ struct VolumeTexture
             glTexParameteri (GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
             glTexParameteri (GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
             glTexParameterfv(GL_TEXTURE_3D, GL_TEXTURE_BORDER_COLOR, borderColor);
-            glTexParameteri (GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+            glTexParameteri (GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri (GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
             // Push 3D texture data to the GPU
@@ -61,7 +61,6 @@ struct VolumeTexture
                          GL_LUMINANCE,
                          GL_UNSIGNED_BYTE, 
                          data);
-            glGenerateMipmap(GL_TEXTURE_3D);
             wxLogDebug("glGetError: %d", glGetError());
             glBindTexture(GL_TEXTURE_3D, 0);
 

@@ -114,21 +114,21 @@ void MainWindow::UpdateVolumeModel(VolumeDataset* dataset)
 	}
 
 	m_sagittalViewSlider->SetValue(0);
-	m_sagittalViewSlider->SetMax(m_sagittalView->GetSliceExtent());
+	m_sagittalViewSlider->SetMax(m_sagittalView->GetSliceExtent() - 1);
 	m_sagittalViewSlider->Enable();
 	m_sagittalViewSlider->Bind(wxEVT_SLIDER, [&](const wxCommandEvent& e) {
 		m_sagittalView->UpdateSliceOffset(m_sagittalViewSlider->GetValue());
 	});
 
 	m_coronalViewSlider->SetValue(0);
-	m_coronalViewSlider->SetMax(m_coronalView->GetSliceExtent());
+	m_coronalViewSlider->SetMax(m_coronalView->GetSliceExtent() - 1);
 	m_coronalViewSlider->Enable();
 	m_horizontalViewSlider->Bind(wxEVT_SLIDER, [&](const wxCommandEvent& e) {
 		m_horizontalView->UpdateSliceOffset(m_horizontalViewSlider->GetValue());
 	});
 
 	m_horizontalViewSlider->SetValue(0);
-	m_horizontalViewSlider->SetMax(m_horizontalView->GetSliceExtent());
+	m_horizontalViewSlider->SetMax(m_horizontalView->GetSliceExtent() - 1);
 	m_horizontalViewSlider->Enable();
 	m_coronalViewSlider->Bind(wxEVT_SLIDER, [&](const wxCommandEvent& e) {
 		m_coronalView->UpdateSliceOffset(m_coronalViewSlider->GetValue());

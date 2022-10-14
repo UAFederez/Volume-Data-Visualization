@@ -37,6 +37,13 @@ private:
 
     U32 m_sliceIndex  = 0;
     U32 m_sliceExtent = 0;
+    R32 m_zoomLevel   = 1.0f;
+    glm::vec2 m_scaleCenter   = glm::vec2(0.0f);
+    glm::vec2 m_clickStart    = glm::vec2(0.0f);
+
+    glm::vec2 m_cameraOffset  = glm::vec2(0.0f);
+    glm::mat4 m_cameraTranslate = glm::mat4(1.0f);
+    glm::mat4 m_cameraPrevTranslate = glm::mat4(1.0f);
 
     GLuint m_imageVao, m_imageVbo, m_imageEbo;
     Shader m_imageShader;

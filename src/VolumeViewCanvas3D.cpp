@@ -39,6 +39,14 @@ void VolumeViewCanvas3D::Init()
 	if (m_hasPreviousData)
 	{
 		Deallocate();
+		m_cameraPos = glm::vec3(0.0f);
+		m_mouseHemi0 = glm::vec3(0.0f);
+		m_mouseHemi1 = glm::vec3(0.0f);
+		m_rotateAxis = glm::vec3(1.0f);
+		m_previousRotation = glm::mat4(1.0f);
+		m_currentRotation  = glm::mat4(1.0f);
+		m_rotateAngle = 0.0f;
+		m_hasPreviousData = false;
 	}
 
 	m_volumeBounds = ConstructVolumeBoundsFromDataset(m_volumeModel->m_dataset.get());
