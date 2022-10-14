@@ -15,6 +15,7 @@ public:
 	U32 GetDepthInput()  const { return m_depthInput->GetValue(); }
 	U32 GetWidthInput()  const { return m_widthInput->GetValue(); }
 	U32 GetHeightInput() const { return m_heightInput->GetValue(); }
+	VolumeDataType GetDataType() const;
 private:
 	VolumeDataType type	    = VolumeDataType::UINT8;
 	std::array<U32, 3> size = { 0 };
@@ -22,5 +23,5 @@ private:
 	wxSpinCtrl* m_depthInput  = nullptr;
 	wxSpinCtrl* m_widthInput  = nullptr;
 	wxSpinCtrl* m_heightInput = nullptr;
-
+	wxComboBox* m_typeSelect  = nullptr;
 };

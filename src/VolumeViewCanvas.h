@@ -48,6 +48,14 @@ struct VolumeTexture
             glTexParameteri (GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri (GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
+            GLenum type = 0;
+            switch (dataset->DataType())
+            {
+                case VolumeDataType::UINT8 : type = GL_UNSIGNED_BYTE ; break;
+                case VolumeDataType::UINT16: type = GL_UNSIGNED_SHORT; break;
+                case VolumeDataType::FLOAT : type = GL_FLOAT         ; break;
+            }
+
             // Push 3D texture data to the GPU
             const U8* data = dataset->RawData();
             wxLogDebug("glGetError: %d", glGetError());
@@ -59,7 +67,7 @@ struct VolumeTexture
                          dataset->DataSize()[2],
                          0,
                          GL_LUMINANCE,
-                         GL_UNSIGNED_BYTE, 
+                         type, 
                          data);
             wxLogDebug("glGetError: %d", glGetError());
             glBindTexture(GL_TEXTURE_3D, 0);

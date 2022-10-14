@@ -22,10 +22,10 @@ void VolumeDataset::ReadVolumeDatasetFile(const std::string& path)
 		throw std::exception(std::string(std::string("File not found: ") + path).c_str());
 
 	std::uintmax_t size = std::filesystem::file_size(path);
-	
-	const U64 totalSize = (U64) dataSize[0] * dataSize[1] * dataSize[2];
+	const U64 pointSize = static_cast<std::underlying_type<VolumeDataType>::type>(dataType);
+	const U64 totalSize = (U64) dataSize[0] * dataSize[1] * dataSize[2] * pointSize;
 
-	if (size != totalSize)	// TODO: Account for non-uint8 files 
+	if (size != totalSize)
 		throw std::exception("Invalid size specified");
 
 	rawBytes.resize(totalSize);

@@ -17,8 +17,8 @@ MainWindow::MainWindow(const wxString& title)
 			wxEVT_COMMAND_MENU_SELECTED,
 		    wxCommandEventHandler(MainWindow::OnQuit));
 	Connect(wxID_OPEN, 
-		wxEVT_COMMAND_MENU_SELECTED,
-		wxCommandEventHandler(MainWindow::OnFileOpen));
+		    wxEVT_COMMAND_MENU_SELECTED,
+		    wxCommandEventHandler(MainWindow::OnFileOpen));
 
 	InitializeVolumeModel();
 
@@ -140,10 +140,10 @@ void MainWindow::OnQuit(wxCommandEvent& WXUNUSED(event))
 	Close(true);
 }
 
-void MainWindow::OnLoadDataset(const char* path, const U32 width, const U32 height, const U32 depth)
+void MainWindow::OnLoadDataset(const char* path, const VolumeDataType type, const U32 width, const U32 height, const U32 depth)
 {
 	try {
-		VolumeDataset* dataset = new VolumeDataset(path, VolumeDataType::UINT8, {width, height, depth});
+		VolumeDataset* dataset = new VolumeDataset(path, type, {width, height, depth});
 		UpdateVolumeModel(dataset);
 	}
 	catch (std::exception& e) {
@@ -160,7 +160,11 @@ void MainWindow::OnFileOpen(wxCommandEvent& WXUNUSED(event))
 		wxString fileName = fileDialog->GetPath();
 		if (metadataDlg->ShowModal() == wxID_OK)
 		{
-			OnLoadDataset(fileName.c_str(), metadataDlg->GetWidthInput(), metadataDlg->GetHeightInput(), metadataDlg->GetDepthInput());
+			OnLoadDataset(fileName.c_str(), 
+						  metadataDlg->GetDataType(),
+						  metadataDlg->GetWidthInput(), 
+						  metadataDlg->GetHeightInput(), 
+						  metadataDlg->GetDepthInput());
 		}
 	}
 	fileDialog->Destroy();

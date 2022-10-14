@@ -37,12 +37,13 @@ VolumeMetadataDialog::VolumeMetadataDialog(const wxString& title)
 
 	wxArrayString typeOptions = wxArrayString();
 	typeOptions.Add(wxString("8-bit unsigned integer"));
+	typeOptions.Add(wxString("16-bit unsigned integer"));
+	typeOptions.Add(wxString("float  (IEEE-754)"));
 
-	wxComboBox* typeSelect = new wxComboBox(this, wxID_ANY, "8-bit unsigned integer", wxPoint(0, 0), wxSize(256, 32), typeOptions);
-	typeSelect->Disable();
+	m_typeSelect = new wxComboBox(this, wxID_ANY, "8-bit unsigned integer", wxPoint(0, 0), wxSize(256, 32), typeOptions, wxCB_READONLY);
 
 	typeInputSizer->Add(new wxStaticText(this, wxID_ANY, "Data type:"), 2,  wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT);
-	typeInputSizer->Add(typeSelect, 8, wxEXPAND);
+	typeInputSizer->Add(m_typeSelect, 8, wxEXPAND);
 
 	// Submit and cancel buttons Button 
 	wxBoxSizer* buttonSizer = new wxBoxSizer(wxHORIZONTAL);
@@ -60,4 +61,12 @@ VolumeMetadataDialog::VolumeMetadataDialog(const wxString& title)
 
 	SetSizerAndFit(mainContainerSizer);
 	Centre();
+}
+
+VolumeDataType VolumeMetadataDialog::GetDataType() const
+{
+	static const VolumeDataType dataTypes[] = {
+		VolumeDataType::UINT8, VolumeDataType::UINT16, VolumeDataType::FLOAT,
+	};
+	return dataTypes[m_typeSelect->GetSelection()];
 }

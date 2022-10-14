@@ -20,7 +20,7 @@ public:
 
 	void OnQuit	   (wxCommandEvent& evt);
 	void OnFileOpen(wxCommandEvent& evt);
-	void OnLoadDataset(const char* path, const U32 width, const U32 height, const U32 depth);
+	void OnLoadDataset(const char* path, const VolumeDataType type, const U32 width, const U32 height, const U32 depth);
 private:
 	// Menu bar 
 	wxMenuBar* m_menuBar  = nullptr;
