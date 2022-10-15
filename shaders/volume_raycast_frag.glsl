@@ -30,6 +30,15 @@ vec2 TestRayIntersection(vec3 r0, vec3 rd, vec3 p0, vec3 n)
 	return vec2(dot(n, normalize(p0 - r0)) / denom, 1.0f);
 }
 
+vec3 CalculateTexturePos(vec3 currPos)
+{
+	vec3 rotatedOrigin = vec3(rotation * vec4(volumeOrigin, 1.0f));
+	vec3 texturePos = vec3(transpose(rotation) * vec4(currPos - rotatedOrigin, 1.0f));
+	texturePos = vec3(round(texturePos.x), round(texturePos.y), round(texturePos.z)) / volumeSize;
+	
+	return texturePos;
+}
+
 void main()
 {
 	vec3 rotatedOrigin = vec3(rotation * vec4(volumeOrigin, 1.0f));
@@ -42,7 +51,7 @@ void main()
 	float numSamplesTotal = 0.0f;
 
 	vec3 texturePos = vec3(0.5f);
-
+	vec3 posAtMax   = currPos;
 	while(true)
 	{
 		// The (currPos - rotatedOrigin) vector needs to be transformed with the inverse
@@ -61,6 +70,7 @@ void main()
 			break;
 
 		float voxelVal  = texture(texture3d, texturePos).r;
+		posAtMax		= voxelVal > maxIntensity ? currPos : posAtMax;
 		maxIntensity    = max(maxIntensity, voxelVal);
 		totalIntensity += voxelVal;
 
@@ -72,7 +82,7 @@ void main()
 		
 		// Check intersection with the adjacent Y-Z plane (normal facing the x axis)
 		vec3 xNorm = vec3((rayDir.x > 0.0f ? -1.0f : 1.0f), 0.0f, 0.0f);
-		vec3 xOrig = vec3((rayDir.x > 0.0f ? floor(currPos.x) + 1 : ceil(currPos.x) - 1), currPos.y, currPos.z);
+		vec3 xOrig = vec3((rayDir.x > 0.0f ? floor(currPos.x) + 1: ceil(currPos.x) - 1), currPos.y, currPos.z);
 		vec2 xTest = TestRayIntersection(currPos, rayDir, xOrig, xNorm);
 
 		// Check intersection with the adjacent X-Z plane (normal facing the y axis)
@@ -92,5 +102,22 @@ void main()
 		currPos += tMin * rayDir;
 	}
 
-	FragmentColor = vec4(maxIntensity);
+	// Compute gradient
+	vec3 dx = vec3(1.0f, 0.0f, 0.0f);
+	vec3 dy = vec3(0.0f, 1.0f, 0.0f);
+	vec3 dz = vec3(0.0f, 0.0f, 0.0f);
+
+	float gx = texture(texture3d, CalculateTexturePos(posAtMax + dx)).r - texture(texture3d, CalculateTexturePos(posAtMax - dx)).r;
+	float gy = texture(texture3d, CalculateTexturePos(posAtMax + dy)).r - texture(texture3d, CalculateTexturePos(posAtMax - dz)).r;
+	float gz = texture(texture3d, CalculateTexturePos(posAtMax + dz)).r - texture(texture3d, CalculateTexturePos(posAtMax - dy)).r;
+
+	vec3 gradient   = vec3(gx, gy, gz) / 2.0f;
+	vec3 lightDir   = normalize(volumeSize - posAtMax);	// volumeSize is the position of the light upper right corner
+	vec3 reflectDir = reflect(-lightDir, gradient);
+
+	vec3 ambient  = vec3(0.25f);
+	vec3 diffuse  = vec3(1.00f) * max(0.6f, dot(normalize(gradient), lightDir));
+	vec3 specular = vec3(1.00f) * pow(max(dot(rayDir, reflectDir), 0.0f), 32) * 0.5f;
+
+	FragmentColor = vec4((ambient + diffuse + specular) * vec3(maxIntensity), maxIntensity);
 }
