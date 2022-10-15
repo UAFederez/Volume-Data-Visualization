@@ -17,83 +17,45 @@ struct VolumeTexture
         }
 
         GLuint GetTextureID() const { return m_textureId; }
-
-        void UpdateTexture(VolumeDataset* dataset)
-        {
-            if (m_isValidTexture)
-            {
-                glDeleteTextures(1, &m_textureId);
-                m_isValidTexture = false;
-            }
-                
-            LoadFromDataset(dataset);
-        }
+        void UpdateTexture(VolumeDataset* dataset);
     private:
-        void LoadFromDataset(VolumeDataset* dataset)
-        {
-            const float borderColor[] = {.0f, .0f, .0f, .0f};
-
-            glGenTextures(1, &m_textureId);
-            glBindTexture(GL_TEXTURE_3D, m_textureId);
-
-
-            glEnable(GL_BLEND);
-            glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-            // Set texture parameters
-            glTexParameteri (GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-            glTexParameteri (GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-            glTexParameteri (GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
-            glTexParameterfv(GL_TEXTURE_3D, GL_TEXTURE_BORDER_COLOR, borderColor);
-            glTexParameteri (GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            glTexParameteri (GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-            GLenum type = 0;
-            switch (dataset->DataType())
-            {
-                case VolumeDataType::UINT8 : type = GL_UNSIGNED_BYTE ; break;
-                case VolumeDataType::UINT16: type = GL_UNSIGNED_SHORT; break;
-                case VolumeDataType::FLOAT : type = GL_FLOAT         ; break;
-            }
-
-            // Push 3D texture data to the GPU
-            const U8* data = dataset->RawData();
-            wxLogDebug("glGetError: %d", glGetError());
-            glTexImage3D(GL_TEXTURE_3D, 
-                         0, 
-                         GL_LUMINANCE, 
-                         dataset->DataSize()[0], 
-                         dataset->DataSize()[1], 
-                         dataset->DataSize()[2],
-                         0,
-                         GL_LUMINANCE,
-                         type, 
-                         data);
-            wxLogDebug("glGetError: %d", glGetError());
-            glBindTexture(GL_TEXTURE_3D, 0);
-
-            m_isValidTexture = true;
-        }
+        void LoadFromDataset(VolumeDataset* dataset);
 
         GLuint m_textureId = 0;
         bool   m_isValidTexture = false;
 };
 
+struct ColorMap
+{
+    std::vector<R32> m_intensities;
+    std::vector<U32> m_rgb;         // low 3 bytes are used as rgb values
+};
+
+struct OpacityMap
+{
+    std::vector<R32> m_intensities;
+    std::vector<R32> m_opacities;
+};
+
+struct TransferFunction1D
+{
+    ColorMap   m_cmap    = { };
+    OpacityMap m_omap    = { };
+    GLuint     m_cmapTex = {0};
+    GLuint     m_omapTex = {0};
+};
+
 struct VolumeModel
 {
-    void UpdateDataset(VolumeDataset* dataset, wxWindow* parent)
+    VolumeModel()
     {
-        m_dataset.reset(dataset);
-        UpdateTexture(parent);
+        
     }
+    void UpdateDataset(VolumeDataset* dataset, wxWindow* parent);
+    void UpdateTexture(wxWindow* parent);
+    void CreateTransferFuncTexture(wxWindow* parent);
 
-    void UpdateTexture(wxWindow* parent)
-    {
-        wxGLCanvas* canvas = new wxGLCanvas(parent, wxID_ANY);
-        canvas->SetCurrent(*m_sharedContext);
-        m_texture.UpdateTexture(m_dataset.get());
-        canvas->Destroy();
-    }
+    TransferFunction1D m_transferFunction = {};
 
     VolumeTexture  m_texture;
     std::unique_ptr<VolumeDataset> m_dataset       = nullptr;

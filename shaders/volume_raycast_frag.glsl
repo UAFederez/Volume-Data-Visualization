@@ -3,12 +3,23 @@
 in  vec3 PosInWorld;
 out vec4 FragmentColor;
 
+/**
+ * Render method:
+ *	Maximum intensity projection - 0
+ *  Average projection			 - 1
+ *  First hit					 - 2
+**/
+
+uniform uint projectionMethod = 0u;
+uniform float firstHitThreshold = 0.0f;
+
 uniform vec3 cameraPosition;
 uniform vec3 volumeOrigin;
 uniform vec3 volumeSize;
 uniform mat4 rotation;
 uniform mat4 view;
 uniform sampler3D texture3d;
+
 
 /**
  * 
@@ -47,6 +58,7 @@ void main()
 	vec3 currPos = PosInWorld;
 
 	float maxIntensity    = texture(texture3d, currPos).r;
+	float currIntensity   = 0.0f;
 	float totalIntensity  = 0.0f;
 	float numSamplesTotal = 0.0f;
 
@@ -69,10 +81,13 @@ void main()
 		if (isOutsideX || isOutsideY || isOutsideZ)
 			break;
 
-		float voxelVal  = texture(texture3d, texturePos).r;
-		posAtMax		= voxelVal > maxIntensity ? currPos : posAtMax;
-		maxIntensity    = max(maxIntensity, voxelVal);
-		totalIntensity += voxelVal;
+		currIntensity   = texture(texture3d, texturePos).r;
+		posAtMax		= currIntensity > maxIntensity ? currPos : posAtMax;
+		maxIntensity    = max(maxIntensity, currIntensity);
+		totalIntensity += currIntensity;
+
+		if (projectionMethod == 2u && (currIntensity > firstHitThreshold))
+			break;
 
 		numSamplesTotal += 1.0f;
 
@@ -113,11 +128,20 @@ void main()
 
 	vec3 gradient   = vec3(gx, gy, gz) / 2.0f;
 	vec3 lightDir   = normalize(volumeSize - posAtMax);	// volumeSize is the position of the light upper right corner
-	vec3 reflectDir = reflect(-lightDir, gradient);
+	vec3 reflectDir = reflect(lightDir, gradient);
 
 	vec3 ambient  = vec3(0.25f);
 	vec3 diffuse  = vec3(1.00f) * max(0.6f, dot(normalize(gradient), lightDir));
 	vec3 specular = vec3(1.00f) * pow(max(dot(rayDir, reflectDir), 0.0f), 32) * 0.5f;
 
-	FragmentColor = vec4((ambient + diffuse + specular) * vec3(maxIntensity), maxIntensity);
+	float finalIntensity = maxIntensity;
+
+	switch (projectionMethod)
+	{
+		case 0u: break;
+		case 1u: finalIntensity = totalIntensity / numSamplesTotal; break;
+		case 2u: finalIntensity = currIntensity; break;
+	}
+
+	FragmentColor = vec4((ambient + diffuse + specular) * vec3(finalIntensity), finalIntensity);
 }

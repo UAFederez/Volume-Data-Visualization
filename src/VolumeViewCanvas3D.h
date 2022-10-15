@@ -12,6 +12,13 @@ struct VolumeBounds
     glm::mat4 rotation;
 };
 
+enum class ProjectionMethod
+{
+    MAX_INTENSITY,
+    FIRST_HIT,
+    AVERAGE,
+};
+
 class VolumeViewCanvas3D final : public VolumeViewCanvas
 {
 public:
@@ -20,7 +27,18 @@ public:
     virtual ~VolumeViewCanvas3D() { Deallocate(); }
 
     void Init() override;
+    void SetRenderMethod(ProjectionMethod newMethod, R64 firstHitThreshold = 0.0)
+    {
+        m_projectionMethod  = newMethod;
+        m_firstHitThreshold = firstHitThreshold;
+        Refresh();
+    }
 
+    void SetBoundingBoxVisibility(bool isVisible)
+    {
+        m_isBoxVisible = isVisible;
+        Refresh();
+    }
 protected:
     void Deallocate() override;
 private:
@@ -35,6 +53,12 @@ private:
 
     Shader m_volumeShader;
     Shader m_volumeBoundsShader;
+
+    // Projection method parameters
+    ProjectionMethod m_projectionMethod = ProjectionMethod::MAX_INTENSITY;
+    R64 m_firstHitThreshold = 0.0;
+
+    bool m_isBoxVisible = true;
 
     /**
     * User input data

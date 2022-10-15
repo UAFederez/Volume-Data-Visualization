@@ -21,21 +21,13 @@ enum class VolumeDataType {
 	FLOAT = 4, DOUBLE = 8
 };
 
-struct Colormap
-{
-	// any value from previous right endpoint (or 0 if this is the first)
-	// will map to the corresponding color with the same index
-
-	std::vector<U64> rightEndpoints;	// 
-	std::vector<U32> colors;
-};
-
 class VolumeDataset
 {
 	public:
 		VolumeDataset(const std::string& path, 
 					  const VolumeDataType type,
-					  const std::array<U32, 3> size);
+					  const std::array<U32, 3> size,
+					  const std::array<R64, 3> spacing);
 		
 		VolumeDataset(const VolumeDataset&) = delete;
 		VolumeDataset(VolumeDataset&&)		= delete;
@@ -44,24 +36,41 @@ class VolumeDataset
 
 		auto DataSize() const 
 		{ 
-			return dataSize; 
+			return m_dataSize; 
+		}
+
+		auto DataSpacing() const
+		{
+			return m_spacing;
 		}
 		
 		auto DataType() const 
 		{ 
-			return dataType; 
+			return m_dataType; 
 		}
 		
 		const U8* RawData() const 
 		{ 
-			return rawBytes.data(); 
+			return m_rawBytes.data(); 
+		}
+
+		const R64 GetMaxInDoubleRange() const
+		{
+			return m_maxInDouble;
 		}
 	private:
 		void ReadVolumeDatasetFile(const std::string& path);
+		
+		template <typename T>
+		void ComputeStatistics();
 
-		std::string		   filePath;
-		std::vector<U8>    rawBytes;
-		std::array<R32, 3> actualSize = {0};
-		std::array<U32, 3> dataSize   = {0};
-		VolumeDataType     dataType;
+		R64 m_maxInDouble = 1.0f;
+		R64 m_minInDouble = 0.0f;
+
+		std::string		   m_filePath;
+		std::vector<U8>    m_rawBytes;
+		std::array<R64, 3> m_spacing    = {0};
+		std::array<R32, 3> m_actualSize = {0};
+		std::array<U32, 3> m_dataSize   = {0};
+		VolumeDataType     m_dataType;
 };

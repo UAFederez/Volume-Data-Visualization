@@ -2,6 +2,7 @@
 #include "VolumeMetadataDialog.h"
 
 #include <wx/splitter.h>
+#include <wx/notebook.h>
 
 MainWindow::MainWindow(const wxString& title)
 	: wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(250, 150))
@@ -24,13 +25,19 @@ MainWindow::MainWindow(const wxString& title)
 
 	InitializeVolumeModel();
 
-
+	wxSplitterWindow* rootSplitter = new wxSplitterWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSP_LIVE_UPDATE);
 	wxBoxSizer* rootSizer = new wxBoxSizer(wxVERTICAL);
-	wxSplitterWindow* viewsMainSplitter = new wxSplitterWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSP_LIVE_UPDATE);
+
+	rootSplitter->SetSashGravity(0.08f);
+	rootSplitter->SetMinimumPaneSize(20);
+	rootSizer->Add(rootSplitter, 1, wxEXPAND, 0);
+
+	wxBoxSizer* viewSizer = new wxBoxSizer(wxVERTICAL);
+	wxSplitterWindow* viewsMainSplitter = new wxSplitterWindow(rootSplitter, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSP_LIVE_UPDATE);
 
 	viewsMainSplitter->SetSashGravity(0.5);
 	viewsMainSplitter->SetMinimumPaneSize(20);
-	rootSizer->Add(viewsMainSplitter, 1, wxEXPAND, 0);
+	viewSizer->Add(viewsMainSplitter, 1, wxEXPAND, 0);
 
 	// Top panel
 	wxPanel* topViewPanel = new wxPanel(viewsMainSplitter, wxID_ANY);
@@ -90,8 +97,55 @@ MainWindow::MainWindow(const wxString& title)
 
 	viewsMainSplitter->SplitHorizontally(topViewPanel, bottomViewsPanel);
 
+	wxPanel* sidebar  = new wxPanel(rootSplitter, wxID_ANY);
+	wxBoxSizer* sidebarSizer = new wxBoxSizer(wxVERTICAL);
+	sidebar->SetSizer(sidebarSizer);
+
+	wxNotebook* notebook = new wxNotebook(sidebar, wxID_ANY);
+
+	wxPanel* renderSettings = new wxPanel(notebook, wxID_ANY);
+	wxFlexGridSizer* renderSettingsSizer = new wxFlexGridSizer(3, 2, 3, 3);
+
+	renderSettings->SetSizer(renderSettingsSizer);
+	{
+		wxArrayString renderOptions = wxArrayString();
+		renderOptions.Add(wxString("Maximum Intensity Projection"));
+		renderOptions.Add(wxString("Average intensity"));
+		renderOptions.Add(wxString("First hit"));
+
+		m_renderMethodSelect = new wxComboBox(renderSettings, wxID_ANY, "Maximum Intensity Projection", wxPoint(0, 0), wxSize(256, 32), renderOptions, wxCB_READONLY);
+		m_renderMethodSelect->Disable();
+		m_firstHitThresholdSlider = new wxSlider(renderSettings, wxID_ANY, 0, 0, 100);
+		m_firstHitThresholdSlider->Disable();
+		m_boxVisibleCheck = new wxCheckBox(renderSettings, wxID_ANY, wxT(""));
+		m_boxVisibleCheck->Disable();
+		
+		renderSettingsSizer->Add(new wxStaticText(renderSettings, wxID_ANY, "Projection method"), 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 5);
+		renderSettingsSizer->Add(m_renderMethodSelect, 1, wxEXPAND, 0);
+		renderSettingsSizer->Add(new wxStaticText(renderSettings, wxID_ANY, "First hit threshold"), 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 5);
+		renderSettingsSizer->Add(m_firstHitThresholdSlider, 1, wxEXPAND, 0);
+		renderSettingsSizer->Add(new wxStaticText(renderSettings, wxID_ANY, "Is box visible?"), 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 5);
+		renderSettingsSizer->Add(m_boxVisibleCheck, 1, wxEXPAND, 0);
+	}
+
+	notebook->AddPage(renderSettings, "Rendering");
+	notebook->AddPage(new wxPanel(notebook, wxID_ANY), "Dataset Properties");
+	
+
+	sidebarSizer->Add(notebook, 1, wxEXPAND, 0);
+
+	rootSplitter->SplitVertically(sidebar, viewsMainSplitter);
 	SetSizerAndFit(rootSizer);
 	rootSizer->SetSizeHints(this);
+}
+
+void MainWindow::UpdateProjectionMethod(wxCommandEvent& e)
+{
+	const ProjectionMethod methods [] = {
+		ProjectionMethod::MAX_INTENSITY, ProjectionMethod::AVERAGE, ProjectionMethod::FIRST_HIT,
+	};
+	m_rootCanvas3d->SetRenderMethod(methods[m_renderMethodSelect->GetSelection()],
+								    (R64) m_firstHitThresholdSlider->GetValue() / 100.0);	
 }
 
 void MainWindow::InitializeVolumeModel()
@@ -150,6 +204,15 @@ void MainWindow::UpdateVolumeModel(VolumeDataset* dataset)
 	m_coronalViewSlider->Bind(wxEVT_SLIDER, [&](const wxCommandEvent& e) {
 		m_coronalView->UpdateSliceOffset(m_coronalViewSlider->GetValue());
 	});
+
+	m_renderMethodSelect->Enable();
+	m_boxVisibleCheck->Enable();
+	m_firstHitThresholdSlider->Enable();
+	m_renderMethodSelect->Bind(wxEVT_COMBOBOX, &MainWindow::UpdateProjectionMethod, this); 
+	m_firstHitThresholdSlider->Bind(wxEVT_SLIDER, &MainWindow::UpdateProjectionMethod, this);
+	m_boxVisibleCheck->Bind(wxEVT_CHECKBOX, [&](wxCommandEvent& e) {
+		m_rootCanvas3d->SetBoundingBoxVisibility(m_boxVisibleCheck->IsChecked());
+	});
 }
 
 void MainWindow::OnQuit(wxCommandEvent& WXUNUSED(event))
@@ -157,10 +220,12 @@ void MainWindow::OnQuit(wxCommandEvent& WXUNUSED(event))
 	Close(true);
 }
 
-void MainWindow::OnLoadDataset(const char* path, const VolumeDataType type, const U32 width, const U32 height, const U32 depth)
+void MainWindow::OnLoadDataset(const char* path, const VolumeDataType type, 
+							   const U32 width, const U32 height, const U32 depth,
+							   const R64 spaceX, const R64 spaceY, const R64 spaceZ)
 {
 	try {
-		VolumeDataset* dataset = new VolumeDataset(path, type, {width, height, depth});
+		VolumeDataset* dataset = new VolumeDataset(path, type, {width, height, depth}, {spaceX, spaceY, spaceZ});
 		UpdateVolumeModel(dataset);
 	}
 	catch (std::exception& e) {
@@ -181,7 +246,10 @@ void MainWindow::OnFileOpen(wxCommandEvent& WXUNUSED(event))
 						  metadataDlg->GetDataType(),
 						  metadataDlg->GetWidthInput(), 
 						  metadataDlg->GetHeightInput(), 
-						  metadataDlg->GetDepthInput());
+						  metadataDlg->GetDepthInput(),
+						  metadataDlg->GetSpaceXInput(),
+						  metadataDlg->GetSpaceYInput(),
+						  metadataDlg->GetSpaceZInput());
 		}
 	}
 	fileDialog->Destroy();

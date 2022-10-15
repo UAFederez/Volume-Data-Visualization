@@ -20,7 +20,9 @@ public:
 
 	void OnQuit	   (wxCommandEvent& evt);
 	void OnFileOpen(wxCommandEvent& evt);
-	void OnLoadDataset(const char* path, const VolumeDataType type, const U32 width, const U32 height, const U32 depth);
+	void OnLoadDataset(const char* path, const VolumeDataType type, 
+					   const U32 width , const U32 height, const U32 depth, 
+					   const R64 spaceX, const R64 spaceY, const R64 spaceZ);
 private:
 	// Menu bar 
 	wxMenuBar* m_menuBar  = nullptr;
@@ -29,6 +31,7 @@ private:
 	GLuint m_textureId;
 
 	void InitializeVolumeModel();
+	void UpdateProjectionMethod(wxCommandEvent& e);
 	void UpdateVolumeModel(VolumeDataset* newDataset);
 
 	std::shared_ptr<VolumeModel> m_volumeModel = {};
@@ -43,6 +46,10 @@ private:
 	wxPanel* m_sagittalViewPanel   = nullptr;
 	wxPanel* m_coronalViewPanel    = nullptr;
 	wxPanel* m_horizontalViewPanel = nullptr;
+
+	wxComboBox* m_renderMethodSelect = nullptr;
+	wxCheckBox* m_boxVisibleCheck = nullptr;
+	wxSlider*   m_firstHitThresholdSlider = nullptr;
 
 	wxSlider* m_sagittalViewSlider   = nullptr;
 	wxSlider* m_coronalViewSlider    = nullptr;

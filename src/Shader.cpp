@@ -61,6 +61,11 @@ void Shader::SetFloat(const char* uniformName, const float f)
     glUniform1f(glGetUniformLocation(m_programId, uniformName), f);
 }
 
+void Shader::SetUint(const char* uniformName, const uint32_t i)
+{
+    glUniform1ui(glGetUniformLocation(m_programId, uniformName), i);
+}
+
 void Shader::CompileAndLinkProgram()
 {
     const std::string vertSource = LoadShaderSource(m_vertSourcePath);

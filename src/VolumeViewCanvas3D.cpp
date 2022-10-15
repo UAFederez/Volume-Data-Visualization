@@ -18,6 +18,11 @@ void VolumeViewCanvas3D::HandleMouseScroll(wxMouseEvent& evt)
 	I32 rotation   = evt.GetWheelRotation();
 	auto dataSize  = m_volumeModel->m_dataset->DataSize();
 
+
+	const R64 relSpaceX = 1.0f;
+	const R64 relSpaceY = m_volumeModel->m_dataset->DataSpacing()[1] / m_volumeModel->m_dataset->DataSpacing()[0];
+	const R64 relSpaceZ = m_volumeModel->m_dataset->DataSpacing()[2] / m_volumeModel->m_dataset->DataSpacing()[0];
+
 	const float SPEED    = 5.0f;
 	const float MIN_DIST = std::min(std::min(dataSize[0], dataSize[1]), dataSize[2]);
 	const float MAX_DIST = std::max(std::max(dataSize[0], dataSize[1]), dataSize[2]) + 350.0f;
@@ -107,12 +112,15 @@ void VolumeViewCanvas3D::Render(wxPaintEvent& evt)
 	{
 		const float viewRadius = 512.0f;
 
+		const R64 relSpaceX = 1.0f;
+		const R64 relSpaceY = m_volumeModel->m_dataset->DataSpacing()[1] / m_volumeModel->m_dataset->DataSpacing()[0];
+		const R64 relSpaceZ = m_volumeModel->m_dataset->DataSpacing()[2] / m_volumeModel->m_dataset->DataSpacing()[0];
 		
 		const float aspectRatio = (float) clientRect.width / (float) clientRect.height;
 
-		glm::vec3 volumeSize = glm::vec3( (float) m_volumeModel->m_dataset->DataSize()[0], 
-										  (float) m_volumeModel->m_dataset->DataSize()[1],
-										  (float) m_volumeModel->m_dataset->DataSize()[2]);
+		glm::vec3 volumeSize = glm::vec3( (float) relSpaceX * m_volumeModel->m_dataset->DataSize()[0], 
+										  (float) relSpaceY * m_volumeModel->m_dataset->DataSize()[1],
+										  (float) relSpaceZ * m_volumeModel->m_dataset->DataSize()[2]);
 		glm::vec3 volumeOrigin = 0.5f * -volumeSize;
 
 		glm::mat4 viewMatrix = glm::lookAt(m_cameraPos, glm::vec3(0.0f), glm::vec3(0.0f, 1.0f, 0.0f));
@@ -121,16 +129,39 @@ void VolumeViewCanvas3D::Render(wxPaintEvent& evt)
 
 		glBindTexture(GL_TEXTURE_3D, m_volumeModel->m_texture.GetTextureID());
 		glBindVertexArray(m_volBoundsVao);
-		m_volumeBoundsShader.UseProgram();
-		m_volumeBoundsShader.SetMatrix4x4("model", translate);
-		m_volumeBoundsShader.SetMatrix4x4("rotation", m_currentRotation);
-		m_volumeBoundsShader.SetMatrix4x4("view", viewMatrix);
-		m_volumeBoundsShader.SetMatrix4x4("projection", projMatrix);
 
-		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+		if (m_isBoxVisible)
+		{
+			m_volumeBoundsShader.UseProgram();
+			m_volumeBoundsShader.SetMatrix4x4("model", translate);
+			m_volumeBoundsShader.SetMatrix4x4("rotation", m_currentRotation);
+			m_volumeBoundsShader.SetMatrix4x4("view", viewMatrix);
+			m_volumeBoundsShader.SetMatrix4x4("projection", projMatrix);
 
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+		}
+		
 		m_volumeShader.UseProgram();
+
+		switch (m_projectionMethod)
+		{
+			case ProjectionMethod::MAX_INTENSITY:
+			{
+				m_volumeShader.SetUint("projectionMethod", 0);
+			} break;
+			case ProjectionMethod::AVERAGE:
+			{
+				m_volumeShader.SetUint("projectionMethod", 1);
+			} break;
+			case ProjectionMethod::FIRST_HIT:
+			{
+				m_volumeShader.SetUint("projectionMethod", 2);
+				m_volumeShader.SetFloat("firstHitThreshold", (R32) m_firstHitThreshold);
+			} break;
+		}
+
+		
 		m_volumeShader.SetVector3("cameraPosition", m_cameraPos);
 		m_volumeShader.SetVector3("volumeOrigin", volumeOrigin);
 		m_volumeShader.SetVector3("volumeSize", volumeSize);
@@ -220,9 +251,13 @@ VolumeBounds ConstructVolumeBoundsFromDataset(const VolumeDataset* data)
 {
 	VolumeBounds v = {};
 
-	const float halfSizeX = data->DataSize()[0] / 2.0f;
-	const float halfSizeY = data->DataSize()[1] / 2.0f;
-	const float halfSizeZ = data->DataSize()[2] / 2.0f;
+	const R64 relSpaceX = 1.0f;
+	const R64 relSpaceY = data->DataSpacing()[1] / data->DataSpacing()[0];
+	const R64 relSpaceZ = data->DataSpacing()[2] / data->DataSpacing()[0];
+
+	const float halfSizeX = relSpaceX * data->DataSize()[0] / 2.0f;
+	const float halfSizeY = relSpaceY * data->DataSize()[1] / 2.0f;
+	const float halfSizeZ = relSpaceZ * data->DataSize()[2] / 2.0f;
 
 	v.vertices[0] = glm::vec3(-halfSizeX, -halfSizeY, -halfSizeZ); // back lower left
 	v.vertices[1] = glm::vec3( halfSizeX, -halfSizeY, -halfSizeZ); // back lower right

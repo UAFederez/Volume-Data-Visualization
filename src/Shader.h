@@ -28,7 +28,7 @@ public:
 	void SetVector3(const char* uniformName, const glm::vec3& vec);
 	void SetVector2(const char* uniformName, float f1, float f2);
 	void SetFloat(const char* uniformName, const float f);
-
+	void SetUint(const char* uniformName, const uint32_t i);
 	~Shader();
 private:
 	void CompileAndLinkProgram();
