@@ -150,8 +150,9 @@
     <ClCompile Include="src\MainWindow.cpp" />
     <ClCompile Include="src\main.cpp" />
     <ClCompile Include="src\Shader.cpp" />
-    <ClCompile Include="src\VolumeDataset.cpp" />
     <ClCompile Include="src\VolumeMetadataDialog.cpp" />
+    <ClCompile Include="src\VolumeModel\TransferFunction1D.cpp" />
+    <ClCompile Include="src\VolumeModel\VolumeDataset.cpp" />
     <ClCompile Include="src\VolumeViewCanvas.cpp" />
     <ClCompile Include="src\VolumeViewCanvas2D.cpp" />
     <ClCompile Include="src\VolumeViewCanvas3D.cpp" />
@@ -159,8 +160,9 @@
   <ItemGroup>
     <ClInclude Include="src\MainWindow.h" />
     <ClInclude Include="src\Shader.h" />
-    <ClInclude Include="src\VolumeDataset.h" />
     <ClInclude Include="src\VolumeMetadataDialog.h" />
+    <ClInclude Include="src\VolumeModel\TransferFunction1D.h" />
+    <ClInclude Include="src\VolumeModel\VolumeDataset.h" />
     <ClInclude Include="src\VolumeViewCanvas.h" />
     <ClInclude Include="src\VolumeViewCanvas2D.h" />
     <ClInclude Include="src\VolumeViewCanvas3D.h" />

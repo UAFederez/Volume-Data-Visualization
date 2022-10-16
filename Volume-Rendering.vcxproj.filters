@@ -13,15 +13,18 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\VolumeModel">
+      <UniqueIdentifier>{b42e5c60-dc17-4a99-8793-3580943a6a35}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\VolumeModel">
+      <UniqueIdentifier>{1d5c0ef6-992d-4c9e-9ef6-7ca493fb1944}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\MainWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\main.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\VolumeDataset.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Shader.cpp">
@@ -39,12 +42,15 @@
     <ClCompile Include="src\VolumeViewCanvas2D.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\VolumeModel\TransferFunction1D.cpp">
+      <Filter>Source Files\VolumeModel</Filter>
+    </ClCompile>
+    <ClCompile Include="src\VolumeModel\VolumeDataset.cpp">
+      <Filter>Source Files\VolumeModel</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\MainWindow.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\VolumeDataset.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Shader.h">
@@ -61,6 +67,12 @@
     </ClInclude>
     <ClInclude Include="src\VolumeViewCanvas2D.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\VolumeModel\TransferFunction1D.h">
+      <Filter>Header Files\VolumeModel</Filter>
+    </ClInclude>
+    <ClInclude Include="src\VolumeModel\VolumeDataset.h">
+      <Filter>Header Files\VolumeModel</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
