@@ -1,10 +1,9 @@
 #pragma once
 
 #include <wx/wx.h>
-
 #include <wx/spinctrl.h>
 
-#include "VolumeDataset.h"
+#include "VolumeModel/VolumeDataset.h"
 
 class VolumeMetadataDialog : public wxDialog
 {

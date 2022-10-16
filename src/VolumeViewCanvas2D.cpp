@@ -182,6 +182,8 @@ void VolumeViewCanvas2D::Render(wxPaintEvent& evt)
 
 			m_imageShader.SetMatrix3x3("uvPermutation", permutationMatrix);
 			m_imageShader.SetFloat("sliceOffset", (float) m_sliceIndex / (float) m_sliceExtent);
+			m_imageShader.SetFloat("maxValue", m_volumeModel->m_dataset->GetMaxInDoubleRange());
+			m_imageShader.SetFloat("minValue", m_volumeModel->m_dataset->GetMinInDoubleRange());
 
 			glBindTexture(GL_TEXTURE_3D, m_volumeModel->m_texture.GetTextureID());
 			glBindVertexArray(m_imageVao);

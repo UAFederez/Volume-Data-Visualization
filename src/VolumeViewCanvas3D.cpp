@@ -127,7 +127,12 @@ void VolumeViewCanvas3D::Render(wxPaintEvent& evt)
 		glm::mat4 projMatrix = glm::perspective(glm::radians(50.0f), aspectRatio, 0.1f, 3072.0f);
 		glm::mat4 translate  = glm::mat4(1.0f);
 
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_3D, m_volumeModel->m_texture.GetTextureID());
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, m_volumeModel->m_transferFunction.m_cmapTex);
+
 		glBindVertexArray(m_volBoundsVao);
 
 		if (m_isBoxVisible)
@@ -161,7 +166,10 @@ void VolumeViewCanvas3D::Render(wxPaintEvent& evt)
 			} break;
 		}
 
-		
+		m_volumeShader.SetFloat("maxValue", m_volumeModel->m_dataset->GetMaxInDoubleRange());
+		m_volumeShader.SetFloat("minValue", m_volumeModel->m_dataset->GetMinInDoubleRange());
+		m_volumeShader.SetInt("texture3d", 0);
+		m_volumeShader.SetInt("textureColor", 1);
 		m_volumeShader.SetVector3("cameraPosition", m_cameraPos);
 		m_volumeShader.SetVector3("volumeOrigin", volumeOrigin);
 		m_volumeShader.SetVector3("volumeSize", volumeSize);

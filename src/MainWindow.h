@@ -2,7 +2,7 @@
 
 #include <wx/wx.h>
 #include <string>
-#include "VolumeDataset.h"
+#include "VolumeModel/VolumeDataset.h"
 
 #include "VolumeViewCanvas.h"
 #include "VolumeViewCanvas3D.h"

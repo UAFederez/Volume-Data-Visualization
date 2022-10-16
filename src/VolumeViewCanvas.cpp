@@ -1,10 +1,9 @@
 #include "VolumeViewCanvas.h"
 
 VolumeViewCanvas::VolumeViewCanvas(
-		wxWindow* parent   , const std::shared_ptr<VolumeModel> model     ,
-		wxWindowID id      , const int* attribList  , const wxPoint& pos                   ,
-		const wxSize& size , const wxString& name   , long style                           , 
-        const wxPalette palette) :
+		wxWindow* parent      , const std::shared_ptr<VolumeModel> model , wxWindowID id              ,
+        const int* attribList , const wxPoint& pos                       , const wxSize& size         ,
+        const wxString& name  , long style                               , const wxPalette palette) :
 	wxGLCanvas   (parent, id, attribList, pos, size, style, name, palette),
 	m_volumeModel(model)
 {
@@ -22,25 +21,33 @@ void VolumeModel::CreateTransferFuncTexture(wxWindow* parent)
     wxGLCanvas* canvas = new wxGLCanvas(parent, wxID_ANY);
     canvas->SetCurrent(*m_sharedContext);
 
-    {
-        m_transferFunction.m_cmap.m_intensities.push_back(0.0f);
-        m_transferFunction.m_cmap.m_intensities.push_back(0.3333f);
-        m_transferFunction.m_cmap.m_intensities.push_back(0.6666f);
-        m_transferFunction.m_cmap.m_intensities.push_back(1.0f);
+    // Initialize Data
+    m_transferFunction.AddColorStop(0.00000f, 0.0f, 0.0f, 0.0f);
+    m_transferFunction.AddColorStop(0.33333f, 1.0f, 1.0f, 0.0f);
+    m_transferFunction.AddColorStop(0.66666f, 1.0f, 1.0f, 0.0f);
+    m_transferFunction.AddColorStop(1.00000f, 1.0f, 0.0f, 0.0f);
 
-        m_transferFunction.m_cmap.m_rgb.push_back(0x00000000);
-        m_transferFunction.m_cmap.m_rgb.push_back(0x00FF0000);
-        m_transferFunction.m_cmap.m_rgb.push_back(0x00FFFF00);
-        m_transferFunction.m_cmap.m_rgb.push_back(0x00FFFF00);
-    }
-    {
-        m_transferFunction.m_omap.m_intensities.push_back(0.0f);
-        m_transferFunction.m_omap.m_intensities.push_back(1.0f);
+    m_transferFunction.AddOpacityStop(0.00000f, 0.00000f);
+    m_transferFunction.AddOpacityStop(0.33333f, 0.33333f);
+    m_transferFunction.AddOpacityStop(0.66666f, 0.66666f);
+    m_transferFunction.AddOpacityStop(1.00000f, 1.00000f);
 
-        m_transferFunction.m_omap.m_opacities.push_back(0.0f);
-        m_transferFunction.m_omap.m_opacities.push_back(1.0f);
-    }
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+    const auto textureData = m_transferFunction.CreateImageFromData();
+
+    glGenTextures(1, &m_transferFunction.m_cmapTex);
+    glBindTexture(GL_TEXTURE_2D, m_transferFunction.m_cmapTex);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 100, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE, (U8*) textureData.data());
+    glBindTexture(GL_TEXTURE_2D, 0);
+    
     canvas->Destroy();
 }
 

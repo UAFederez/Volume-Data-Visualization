@@ -28,7 +28,7 @@ MainWindow::MainWindow(const wxString& title)
 	wxSplitterWindow* rootSplitter = new wxSplitterWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSP_LIVE_UPDATE);
 	wxBoxSizer* rootSizer = new wxBoxSizer(wxVERTICAL);
 
-	rootSplitter->SetSashGravity(0.08f);
+	
 	rootSplitter->SetMinimumPaneSize(20);
 	rootSizer->Add(rootSplitter, 1, wxEXPAND, 0);
 
@@ -90,42 +90,42 @@ MainWindow::MainWindow(const wxString& title)
 		horizontalPanelSizer->Add(horizontalControlsSizer, 0, wxEXPAND, 0);
 		horizontalPanelSizer->Add(m_horizontalView, 1, wxEXPAND, 0);
 
-		sizer->Add(sagittalPanelSizer, 1, wxEXPAND, 0);
-		sizer->Add(coronalPanelSizer, 1, wxEXPAND, 0);
-		sizer->Add(horizontalPanelSizer, 1, wxEXPAND, 0);
+		sizer->Add(sagittalPanelSizer, 1, wxEXPAND, 5);
+		sizer->Add(coronalPanelSizer, 1, wxEXPAND, 5);
+		sizer->Add(horizontalPanelSizer, 1, wxEXPAND, 5);
 	}
 
 	viewsMainSplitter->SplitHorizontally(topViewPanel, bottomViewsPanel);
 
 	wxPanel* sidebar  = new wxPanel(rootSplitter, wxID_ANY);
 	wxBoxSizer* sidebarSizer = new wxBoxSizer(wxVERTICAL);
-	sidebar->SetSizer(sidebarSizer);
+	sidebar->SetSizerAndFit(sidebarSizer);
 
 	wxNotebook* notebook = new wxNotebook(sidebar, wxID_ANY);
 
 	wxPanel* renderSettings = new wxPanel(notebook, wxID_ANY);
-	wxFlexGridSizer* renderSettingsSizer = new wxFlexGridSizer(3, 2, 3, 3);
+	wxFlexGridSizer* renderSettingsSizer = new wxFlexGridSizer(3, 2, 0, 0);
 
-	renderSettings->SetSizer(renderSettingsSizer);
+	renderSettings->SetSizerAndFit(renderSettingsSizer);
 	{
 		wxArrayString renderOptions = wxArrayString();
 		renderOptions.Add(wxString("Maximum Intensity Projection"));
 		renderOptions.Add(wxString("Average intensity"));
 		renderOptions.Add(wxString("First hit"));
 
-		m_renderMethodSelect = new wxComboBox(renderSettings, wxID_ANY, "Maximum Intensity Projection", wxPoint(0, 0), wxSize(256, 32), renderOptions, wxCB_READONLY);
+		m_renderMethodSelect = new wxComboBox(renderSettings, wxID_ANY, "Maximum Intensity Projection", wxDefaultPosition, wxDefaultSize, renderOptions, wxCB_READONLY);
 		m_renderMethodSelect->Disable();
 		m_firstHitThresholdSlider = new wxSlider(renderSettings, wxID_ANY, 0, 0, 100);
 		m_firstHitThresholdSlider->Disable();
-		m_boxVisibleCheck = new wxCheckBox(renderSettings, wxID_ANY, wxT(""));
+		m_boxVisibleCheck = new wxCheckBox(renderSettings, wxID_ANY, wxT("Is visible"));
 		m_boxVisibleCheck->Disable();
 		
 		renderSettingsSizer->Add(new wxStaticText(renderSettings, wxID_ANY, "Projection method"), 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 5);
-		renderSettingsSizer->Add(m_renderMethodSelect, 1, wxEXPAND, 0);
+		renderSettingsSizer->Add(m_renderMethodSelect, 0, wxEXPAND, 0);
 		renderSettingsSizer->Add(new wxStaticText(renderSettings, wxID_ANY, "First hit threshold"), 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 5);
-		renderSettingsSizer->Add(m_firstHitThresholdSlider, 1, wxEXPAND, 0);
+		renderSettingsSizer->Add(m_firstHitThresholdSlider, 0, wxEXPAND, 0);
 		renderSettingsSizer->Add(new wxStaticText(renderSettings, wxID_ANY, "Is box visible?"), 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 5);
-		renderSettingsSizer->Add(m_boxVisibleCheck, 1, wxEXPAND, 0);
+		renderSettingsSizer->Add(m_boxVisibleCheck, 0, wxEXPAND, 0);
 	}
 
 	notebook->AddPage(renderSettings, "Rendering");
@@ -135,6 +135,8 @@ MainWindow::MainWindow(const wxString& title)
 	sidebarSizer->Add(notebook, 1, wxEXPAND, 0);
 
 	rootSplitter->SplitVertically(sidebar, viewsMainSplitter);
+	rootSplitter->SetSashGravity(0.05f);
+
 	SetSizerAndFit(rootSizer);
 	rootSizer->SetSizeHints(this);
 }
@@ -157,6 +159,8 @@ void MainWindow::InitializeVolumeModel()
 	m_volumeModel->m_sharedContext = std::make_shared<wxGLContext>(canvas);
 	m_volumeModel->m_dataset		  = nullptr;
 	m_volumeModel->m_texture		  = {};
+
+	m_volumeModel->CreateTransferFuncTexture(canvas);
 
 	canvas->SetCurrent(*m_volumeModel->m_sharedContext);
 
@@ -210,6 +214,7 @@ void MainWindow::UpdateVolumeModel(VolumeDataset* dataset)
 	m_firstHitThresholdSlider->Enable();
 	m_renderMethodSelect->Bind(wxEVT_COMBOBOX, &MainWindow::UpdateProjectionMethod, this); 
 	m_firstHitThresholdSlider->Bind(wxEVT_SLIDER, &MainWindow::UpdateProjectionMethod, this);
+	m_rootCanvas3d->SetBoundingBoxVisibility(m_boxVisibleCheck->IsChecked());
 	m_boxVisibleCheck->Bind(wxEVT_CHECKBOX, [&](wxCommandEvent& e) {
 		m_rootCanvas3d->SetBoundingBoxVisibility(m_boxVisibleCheck->IsChecked());
 	});
