@@ -17,6 +17,7 @@ enum class ProjectionMethod
     MAX_INTENSITY,
     FIRST_HIT,
     AVERAGE,
+    COMPOSITE,
 };
 
 class VolumeViewCanvas3D final : public VolumeViewCanvas
@@ -53,6 +54,7 @@ private:
 
     Shader m_volumeShader;
     Shader m_volumeBoundsShader;
+    Shader m_compositeShader;
 
     // Projection method parameters
     ProjectionMethod m_projectionMethod = ProjectionMethod::MAX_INTENSITY;

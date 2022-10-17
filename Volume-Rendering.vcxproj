@@ -171,6 +171,7 @@
     <None Include="shaders\volume_cross_section_frag.glsl" />
     <None Include="shaders\volume_cross_section_vert.glsl" />
     <None Include="shaders\volume_raycast_border_frag.glsl" />
+    <None Include="shaders\volume_raycast_composite_frag.glsl" />
     <None Include="shaders\volume_raycast_frag.glsl" />
     <None Include="shaders\volume_raycast_vert.glsl" />
   </ItemGroup>

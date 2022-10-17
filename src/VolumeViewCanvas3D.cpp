@@ -9,8 +9,6 @@ VolumeViewCanvas3D::VolumeViewCanvas3D(
 	Bind(wxEVT_LEFT_UP   , [=](wxMouseEvent& e) { HandleLeftRelease(e); } , GetId());
 	Bind(wxEVT_MOTION    , [=](wxMouseEvent& e) { HandleMouseMove(e);   } , GetId());
 	Bind(wxEVT_MOUSEWHEEL, [=](wxMouseEvent& e) { HandleMouseScroll(e);   } , GetId());
-
-	Init();
 }
 
 void VolumeViewCanvas3D::HandleMouseScroll(wxMouseEvent& evt)
@@ -88,6 +86,7 @@ void VolumeViewCanvas3D::Init()
 	**/
 	m_volumeShader		 = Shader("shaders/volume_raycast_vert.glsl", "shaders/volume_raycast_frag.glsl");
 	m_volumeBoundsShader = Shader("shaders/volume_raycast_vert.glsl", "shaders/volume_raycast_border_frag.glsl");
+	m_compositeShader    = Shader("shaders/volume_raycast_vert.glsl", "shaders/volume_raycast_composite_frag.glsl");
 
 	// Initialize camera position
 	m_cameraPos = glm::vec3(0.0f, 0.0f, m_volumeModel->m_dataset->DataSize()[2] + 350.0f);
@@ -99,6 +98,8 @@ void VolumeViewCanvas3D::Init()
 
 void VolumeViewCanvas3D::Render(wxPaintEvent& evt)
 {
+    if(!m_volumeModel || m_volumeModel->m_sharedContext == nullptr) return;
+
 	SetCurrent(*m_volumeModel->m_sharedContext);
 
 	wxRect clientRect = GetClientRect();
@@ -147,7 +148,10 @@ void VolumeViewCanvas3D::Render(wxPaintEvent& evt)
 			glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
 		}
 		
-		m_volumeShader.UseProgram();
+		Shader* currentShader  = (m_projectionMethod == ProjectionMethod::COMPOSITE) ? &m_compositeShader : &m_volumeShader;
+		
+
+		currentShader->UseProgram();
 
 		switch (m_projectionMethod)
 		{
@@ -164,20 +168,21 @@ void VolumeViewCanvas3D::Render(wxPaintEvent& evt)
 				m_volumeShader.SetUint("projectionMethod", 2);
 				m_volumeShader.SetFloat("firstHitThreshold", (R32) m_firstHitThreshold);
 			} break;
+			default: break;
 		}
 
-		m_volumeShader.SetFloat("maxValue", m_volumeModel->m_dataset->GetMaxInDoubleRange());
-		m_volumeShader.SetFloat("minValue", m_volumeModel->m_dataset->GetMinInDoubleRange());
-		m_volumeShader.SetInt("texture3d", 0);
-		m_volumeShader.SetInt("textureColor", 1);
-		m_volumeShader.SetVector3("cameraPosition", m_cameraPos);
-		m_volumeShader.SetVector3("volumeOrigin", volumeOrigin);
-		m_volumeShader.SetVector3("volumeSize", volumeSize);
+		currentShader->SetFloat("maxValue", m_volumeModel->m_dataset->GetMaxInDoubleRange());
+		currentShader->SetFloat("minValue", m_volumeModel->m_dataset->GetMinInDoubleRange());
+		currentShader->SetInt("texture3d", 0);
+		currentShader->SetInt("textureColor", 1);
+		currentShader->SetVector3("cameraPosition", m_cameraPos);
+		currentShader->SetVector3("volumeOrigin", volumeOrigin);
+		currentShader->SetVector3("volumeSize", volumeSize);
 
-		m_volumeShader.SetMatrix4x4("model", translate);
-		m_volumeShader.SetMatrix4x4("rotation", m_currentRotation);
-		m_volumeShader.SetMatrix4x4("view", viewMatrix);
-		m_volumeShader.SetMatrix4x4("projection", projMatrix);
+		currentShader->SetMatrix4x4("model", translate);
+		currentShader->SetMatrix4x4("rotation", m_currentRotation);
+		currentShader->SetMatrix4x4("view", viewMatrix);
+		currentShader->SetMatrix4x4("projection", projMatrix);
 
 		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 		glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);

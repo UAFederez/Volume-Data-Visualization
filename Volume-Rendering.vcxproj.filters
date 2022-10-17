@@ -91,5 +91,8 @@
     <None Include="shaders\volume_cross_section_frag.glsl">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="shaders\volume_raycast_composite_frag.glsl">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
