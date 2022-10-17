@@ -23,6 +23,8 @@ public:
 	void OnLoadDataset(const char* path, const VolumeDataType type, 
 					   const U32 width , const U32 height, const U32 depth, 
 					   const R64 spaceX, const R64 spaceY, const R64 spaceZ);
+
+    void OnPaint(wxPaintEvent& e);
 private:
 	// Menu bar 
 	wxMenuBar* m_menuBar  = nullptr;

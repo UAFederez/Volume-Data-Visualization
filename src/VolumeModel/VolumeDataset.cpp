@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <iostream>
 #include <thread>
+#include <algorithm>
 
 VolumeDataset::VolumeDataset(const std::string& path, 
 							 const VolumeDataType type,
@@ -44,14 +45,14 @@ void VolumeDataset::ReadVolumeDatasetFile(const std::string& path)
 {
 	std::ifstream inputFile(path, std::ios::binary);
 	if(!inputFile)
-		throw std::exception(std::string(std::string("File not found: ") + path).c_str());
+		throw std::runtime_error(std::string(std::string("File not found: ") + path).c_str());
 
 	std::uintmax_t size = std::filesystem::file_size(path);
 	const U64 pointSize = static_cast<std::underlying_type<VolumeDataType>::type>(m_dataType);
 	const U64 totalSize = (U64) m_dataSize[0] * m_dataSize[1] * m_dataSize[2] * pointSize;
 
 	if (size != totalSize)
-		throw std::exception("Invalid size specified");
+		throw std::runtime_error("Invalid size specified");
 
 	m_rawBytes.resize(totalSize);
 	inputFile.read(reinterpret_cast<char*>(m_rawBytes.data()), totalSize);

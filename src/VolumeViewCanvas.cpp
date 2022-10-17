@@ -18,18 +18,16 @@ VolumeViewCanvas::~VolumeViewCanvas()
 
 void VolumeModel::CreateTransferFuncTexture(wxWindow* parent)
 {
-    wxGLCanvas* canvas = new wxGLCanvas(parent, wxID_ANY);
+    wxGLCanvas* canvas = new wxGLCanvas(parent, wxID_ANY, nullptr);
     canvas->SetCurrent(*m_sharedContext);
 
     // Initialize Data
     m_transferFunction.AddColorStop(0.00000f, 0.0f, 0.0f, 0.0f);
-    m_transferFunction.AddColorStop(0.33333f, 1.0f, 1.0f, 0.0f);
-    m_transferFunction.AddColorStop(0.66666f, 1.0f, 1.0f, 0.0f);
+    m_transferFunction.AddColorStop(0.40000f, 0.0f, 1.0f, 0.0f);
     m_transferFunction.AddColorStop(1.00000f, 1.0f, 0.0f, 0.0f);
 
     m_transferFunction.AddOpacityStop(0.00000f, 0.00000f);
-    m_transferFunction.AddOpacityStop(0.33333f, 0.33333f);
-    m_transferFunction.AddOpacityStop(0.66666f, 0.66666f);
+    m_transferFunction.AddOpacityStop(0.40000f, 0.00000f);
     m_transferFunction.AddOpacityStop(1.00000f, 1.00000f);
 
     glEnable(GL_BLEND);
@@ -59,7 +57,7 @@ void VolumeModel::UpdateDataset(VolumeDataset* dataset, wxWindow* parent)
 
 void VolumeModel::UpdateTexture(wxWindow* parent)
 {
-    wxGLCanvas* canvas = new wxGLCanvas(parent, wxID_ANY);
+    wxGLCanvas* canvas = new wxGLCanvas(parent, wxID_ANY, nullptr);
     canvas->SetCurrent(*m_sharedContext);
     m_texture.UpdateTexture(m_dataset.get());
     canvas->Destroy();

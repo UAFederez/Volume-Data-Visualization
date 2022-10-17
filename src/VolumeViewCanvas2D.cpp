@@ -10,7 +10,6 @@ VolumeViewCanvas2D::VolumeViewCanvas2D(
 	Bind(wxEVT_LEFT_UP   , [=](wxMouseEvent& e) { HandleLeftRelease(e); } , GetId());
 	Bind(wxEVT_MOTION    , [=](wxMouseEvent& e) { HandleMouseMove(e);   } , GetId());
 	Bind(wxEVT_MOUSEWHEEL, [=](wxMouseEvent& e) { HandleMouseScroll(e);   } , GetId());
-	Init();
 }
 
 void VolumeViewCanvas2D::HandleMouseScroll(wxMouseEvent& evt)
@@ -101,6 +100,8 @@ void VolumeViewCanvas2D::Init()
 
 void VolumeViewCanvas2D::Render(wxPaintEvent& evt)
 {
+    if(!m_volumeModel || m_volumeModel->m_sharedContext == nullptr) return;
+
 	SetCurrent(*m_volumeModel->m_sharedContext);
 
 	wxRect clientRect = GetClientRect();

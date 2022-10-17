@@ -11,8 +11,7 @@ VolumeMetadataDialog::VolumeMetadataDialog(const wxString& title)
 	{
 		// Width input
 		m_widthInput = new wxSpinCtrl(this, wxID_ANY);
-		m_widthInput->SetMin(0);
-		m_widthInput->SetMax(std::numeric_limits<I32>::max());
+		m_widthInput->SetRange(0, std::numeric_limits<I32>::max());
 		wxBoxSizer* widthInputSizer = new wxBoxSizer(wxHORIZONTAL);
 
 		widthInputSizer->Add(new wxStaticText(this, wxID_ANY, "Width:"), 2,  wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT);
@@ -20,8 +19,7 @@ VolumeMetadataDialog::VolumeMetadataDialog(const wxString& title)
 
 		// Height input
 		m_heightInput = new wxSpinCtrl(this, wxID_ANY);
-		m_heightInput->SetMin(0);
-		m_heightInput->SetMax(std::numeric_limits<I32>::max());
+		m_heightInput->SetRange(0, std::numeric_limits<I32>::max());
 		wxBoxSizer* heightInputSizer = new wxBoxSizer(wxHORIZONTAL);
 
 		heightInputSizer->Add(new wxStaticText(this, wxID_ANY, "Height:"), 2,  wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT);
@@ -29,8 +27,7 @@ VolumeMetadataDialog::VolumeMetadataDialog(const wxString& title)
 
 		// Depth input
 		m_depthInput = new wxSpinCtrl(this, wxID_ANY);
-		m_depthInput->SetMin(0);
-		m_depthInput->SetMax(std::numeric_limits<I32>::max());
+		m_depthInput->SetRange(0, std::numeric_limits<I32>::max());
 		wxBoxSizer* depthInputSizer = new wxBoxSizer(wxHORIZONTAL);
 
 		depthInputSizer->Add(new wxStaticText(this, wxID_ANY, "Depth:"), 2,  wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT);

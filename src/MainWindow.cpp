@@ -4,6 +4,22 @@
 #include <wx/splitter.h>
 #include <wx/notebook.h>
 
+void MainWindow::OnPaint(wxPaintEvent& e)
+{ 
+    try {
+        if(m_volumeModel->m_sharedContext == nullptr)
+        {
+            InitializeVolumeModel();
+            m_rootCanvas3d->Init();
+            m_sagittalView->Init();
+            m_coronalView->Init();
+            m_horizontalView->Init();
+        }
+    } catch(std::exception& e) {
+        wxLogDebug("OnPaint %s", e.what());
+    }
+}
+
 MainWindow::MainWindow(const wxString& title)
 	: wxFrame(NULL, wxID_ANY, title, wxDefaultPosition, wxSize(250, 150))
 {
@@ -23,128 +39,134 @@ MainWindow::MainWindow(const wxString& title)
 		    wxEVT_COMMAND_MENU_SELECTED,
 		    wxCommandEventHandler(MainWindow::OnFileOpen));
 
-	InitializeVolumeModel();
+	m_volumeModel = std::make_shared<VolumeModel>();
+    this->Bind(wxEVT_PAINT, &MainWindow::OnPaint, this);
 
-	wxSplitterWindow* rootSplitter = new wxSplitterWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSP_LIVE_UPDATE);
-	wxBoxSizer* rootSizer = new wxBoxSizer(wxVERTICAL);
+    try {
+        wxSplitterWindow* rootSplitter = new wxSplitterWindow(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSP_LIVE_UPDATE);
+        wxBoxSizer* rootSizer = new wxBoxSizer(wxVERTICAL);
+        
+        rootSplitter->SetMinimumPaneSize(20);
+        rootSizer->Add(rootSplitter, 1, wxEXPAND, 0);
 
-	
-	rootSplitter->SetMinimumPaneSize(20);
-	rootSizer->Add(rootSplitter, 1, wxEXPAND, 0);
+        wxBoxSizer* viewSizer = new wxBoxSizer(wxVERTICAL);
+        wxSplitterWindow* viewsMainSplitter = new wxSplitterWindow(rootSplitter, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSP_LIVE_UPDATE);
 
-	wxBoxSizer* viewSizer = new wxBoxSizer(wxVERTICAL);
-	wxSplitterWindow* viewsMainSplitter = new wxSplitterWindow(rootSplitter, wxID_ANY, wxDefaultPosition, wxDefaultSize, wxSP_LIVE_UPDATE);
+        viewsMainSplitter->SetSashGravity(0.5);
+        viewsMainSplitter->SetMinimumPaneSize(20);
+        viewSizer->Add(viewsMainSplitter, 1, wxEXPAND, 0);
 
-	viewsMainSplitter->SetSashGravity(0.5);
-	viewsMainSplitter->SetMinimumPaneSize(20);
-	viewSizer->Add(viewsMainSplitter, 1, wxEXPAND, 0);
+        // Top panel
+        wxPanel* topViewPanel = new wxPanel(viewsMainSplitter, wxID_ANY);
+        {
+            wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
+            topViewPanel->SetSizer(sizer);
+            m_rootCanvas3d = new VolumeViewCanvas3D(topViewPanel, m_volumeModel);
+            sizer->Add(m_rootCanvas3d, 1, wxEXPAND, 0);
+        }
+        
+        // Bottom views panel
+        wxPanel* bottomViewsPanel = new wxPanel(viewsMainSplitter, wxID_ANY);
+        {
+            wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
+            bottomViewsPanel->SetSizer(sizer);
 
-	// Top panel
-	wxPanel* topViewPanel = new wxPanel(viewsMainSplitter, wxID_ANY);
-	{
-		wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
-		topViewPanel->SetSizer(sizer);
-		m_rootCanvas3d = new VolumeViewCanvas3D(topViewPanel, m_volumeModel);
-		sizer->Add(m_rootCanvas3d, 1, wxEXPAND, 0);
-	}
-	
-	// Bottom views panel
-	wxPanel* bottomViewsPanel = new wxPanel(viewsMainSplitter, wxID_ANY);
-	{
-		wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
-		bottomViewsPanel->SetSizer(sizer);
+            wxBoxSizer* sagittalPanelSizer    = new wxBoxSizer(wxVERTICAL);
+            wxBoxSizer* sagittalControlsSizer = new wxBoxSizer(wxHORIZONTAL);
+            m_sagittalViewSlider = new wxSlider(bottomViewsPanel, wxID_ANY, 0, 0, 100);
+            m_sagittalView       = new VolumeViewCanvas2D(bottomViewsPanel, m_volumeModel, AnatomicalAxis::SAGITTAL);
 
-		wxBoxSizer* sagittalPanelSizer    = new wxBoxSizer(wxVERTICAL);
-		wxBoxSizer* sagittalControlsSizer = new wxBoxSizer(wxHORIZONTAL);
-		m_sagittalViewSlider = new wxSlider(bottomViewsPanel, wxID_ANY, 0, 0, 100);
-		m_sagittalView       = new VolumeViewCanvas2D(bottomViewsPanel, m_volumeModel, AnatomicalAxis::SAGITTAL);
+            sagittalControlsSizer->Add(new wxStaticText(bottomViewsPanel, wxID_ANY, "Sagittal"), 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 5);
+            sagittalControlsSizer->Add(m_sagittalViewSlider, 1, wxEXPAND | wxBOTTOM, 0);
+            m_sagittalViewSlider->Disable();
 
-		sagittalControlsSizer->Add(new wxStaticText(bottomViewsPanel, wxID_ANY, "Sagittal"), 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 5);
-		sagittalControlsSizer->Add(m_sagittalViewSlider, 1, wxEXPAND | wxBOTTOM, 0);
-		m_sagittalViewSlider->Disable();
+            sagittalPanelSizer->Add(sagittalControlsSizer, 0, wxEXPAND);
+            sagittalPanelSizer->Add(m_sagittalView, 1, wxEXPAND);
 
-		sagittalPanelSizer->Add(sagittalControlsSizer, 0, wxEXPAND);
-		sagittalPanelSizer->Add(m_sagittalView, 1, wxEXPAND);
+            wxBoxSizer* coronalPanelSizer    = new wxBoxSizer(wxVERTICAL);
+            wxBoxSizer* coronalControlsSizer = new wxBoxSizer(wxHORIZONTAL);
+            m_coronalViewSlider = new wxSlider(bottomViewsPanel, wxID_ANY, 0, 0, 100);
+            m_coronalView       = new VolumeViewCanvas2D(bottomViewsPanel, m_volumeModel, AnatomicalAxis::CORONAL);
 
-		wxBoxSizer* coronalPanelSizer    = new wxBoxSizer(wxVERTICAL);
-		wxBoxSizer* coronalControlsSizer = new wxBoxSizer(wxHORIZONTAL);
-		m_coronalViewSlider = new wxSlider(bottomViewsPanel, wxID_ANY, 0, 0, 100);
-		m_coronalView       = new VolumeViewCanvas2D(bottomViewsPanel, m_volumeModel, AnatomicalAxis::CORONAL);
+            coronalControlsSizer->Add(new wxStaticText(bottomViewsPanel, wxID_ANY, "Coronal"), 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 5);
+            coronalControlsSizer->Add(m_coronalViewSlider, 1, wxEXPAND | wxBOTTOM, 0);
+            m_coronalViewSlider->Disable();
 
-		coronalControlsSizer->Add(new wxStaticText(bottomViewsPanel, wxID_ANY, "Coronal"), 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 5);
-		coronalControlsSizer->Add(m_coronalViewSlider, 1, wxEXPAND | wxBOTTOM, 0);
-		m_coronalViewSlider->Disable();
+            coronalPanelSizer->Add(coronalControlsSizer, 0, wxEXPAND);
+            coronalPanelSizer->Add(m_coronalView, 1, wxEXPAND);
 
-		coronalPanelSizer->Add(coronalControlsSizer, 0, wxEXPAND);
-		coronalPanelSizer->Add(m_coronalView, 1, wxEXPAND);
+            wxBoxSizer* horizontalPanelSizer    = new wxBoxSizer(wxVERTICAL);
+            wxBoxSizer* horizontalControlsSizer = new wxBoxSizer(wxHORIZONTAL);
+            m_horizontalViewSlider = new wxSlider(bottomViewsPanel, wxID_ANY, 0, 0, 100);
+            m_horizontalView       = new VolumeViewCanvas2D(bottomViewsPanel, m_volumeModel, AnatomicalAxis::HORIZONTAL);
 
-		wxBoxSizer* horizontalPanelSizer    = new wxBoxSizer(wxVERTICAL);
-		wxBoxSizer* horizontalControlsSizer = new wxBoxSizer(wxHORIZONTAL);
-		m_horizontalViewSlider = new wxSlider(bottomViewsPanel, wxID_ANY, 0, 0, 100);
-		m_horizontalView       = new VolumeViewCanvas2D(bottomViewsPanel, m_volumeModel, AnatomicalAxis::HORIZONTAL);
+            horizontalControlsSizer->Add(new wxStaticText(bottomViewsPanel, wxID_ANY, "Horizontal"), 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 5);
+            horizontalControlsSizer->Add(m_horizontalViewSlider, 1, wxEXPAND | wxBOTTOM, 0);
+            m_horizontalViewSlider->Disable();
 
-		horizontalControlsSizer->Add(new wxStaticText(bottomViewsPanel, wxID_ANY, "Horizontal"), 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 5);
-		horizontalControlsSizer->Add(m_horizontalViewSlider, 1, wxEXPAND | wxBOTTOM, 0);
-		m_horizontalViewSlider->Disable();
+            horizontalPanelSizer->Add(horizontalControlsSizer, 0, wxEXPAND, 0);
+            horizontalPanelSizer->Add(m_horizontalView, 1, wxEXPAND, 0);
 
-		horizontalPanelSizer->Add(horizontalControlsSizer, 0, wxEXPAND, 0);
-		horizontalPanelSizer->Add(m_horizontalView, 1, wxEXPAND, 0);
+            sizer->Add(sagittalPanelSizer, 1, wxEXPAND, 5);
+            sizer->Add(coronalPanelSizer, 1, wxEXPAND, 5);
+            sizer->Add(horizontalPanelSizer, 1, wxEXPAND, 5);
+        }
 
-		sizer->Add(sagittalPanelSizer, 1, wxEXPAND, 5);
-		sizer->Add(coronalPanelSizer, 1, wxEXPAND, 5);
-		sizer->Add(horizontalPanelSizer, 1, wxEXPAND, 5);
-	}
+        viewsMainSplitter->SplitHorizontally(topViewPanel, bottomViewsPanel);
 
-	viewsMainSplitter->SplitHorizontally(topViewPanel, bottomViewsPanel);
+        wxPanel* sidebar  = new wxPanel(rootSplitter, wxID_ANY);
+        wxBoxSizer* sidebarSizer = new wxBoxSizer(wxVERTICAL);
+        sidebar->SetSizerAndFit(sidebarSizer);
 
-	wxPanel* sidebar  = new wxPanel(rootSplitter, wxID_ANY);
-	wxBoxSizer* sidebarSizer = new wxBoxSizer(wxVERTICAL);
-	sidebar->SetSizerAndFit(sidebarSizer);
+        wxNotebook* notebook = new wxNotebook(sidebar, wxID_ANY);
 
-	wxNotebook* notebook = new wxNotebook(sidebar, wxID_ANY);
+        wxPanel* renderSettings = new wxPanel(notebook, wxID_ANY);
+        wxFlexGridSizer* renderSettingsSizer = new wxFlexGridSizer(3, 2, 0, 0);
 
-	wxPanel* renderSettings = new wxPanel(notebook, wxID_ANY);
-	wxFlexGridSizer* renderSettingsSizer = new wxFlexGridSizer(3, 2, 0, 0);
+        renderSettings->SetSizerAndFit(renderSettingsSizer);
+        {
+            wxArrayString renderOptions = wxArrayString();
+            renderOptions.Add(wxString("Maximum Intensity Projection"));
+            renderOptions.Add(wxString("Average intensity"));
+            renderOptions.Add(wxString("First hit"));
+            renderOptions.Add(wxString("Composite"));
 
-	renderSettings->SetSizerAndFit(renderSettingsSizer);
-	{
-		wxArrayString renderOptions = wxArrayString();
-		renderOptions.Add(wxString("Maximum Intensity Projection"));
-		renderOptions.Add(wxString("Average intensity"));
-		renderOptions.Add(wxString("First hit"));
+            m_renderMethodSelect = new wxComboBox(renderSettings, wxID_ANY, "Maximum Intensity Projection", wxDefaultPosition, wxDefaultSize, renderOptions, wxCB_READONLY);
+            m_renderMethodSelect->Disable();
+            m_firstHitThresholdSlider = new wxSlider(renderSettings, wxID_ANY, 0, 0, 100);
+            m_firstHitThresholdSlider->Disable();
+            m_boxVisibleCheck = new wxCheckBox(renderSettings, wxID_ANY, wxT("Is visible"));
+            m_boxVisibleCheck->Disable();
+            
+            renderSettingsSizer->Add(new wxStaticText(renderSettings, wxID_ANY, "Projection method"), 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 5);
+            renderSettingsSizer->Add(m_renderMethodSelect, 0, wxEXPAND, 0);
+            renderSettingsSizer->Add(new wxStaticText(renderSettings, wxID_ANY, "First hit threshold"), 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 5);
+            renderSettingsSizer->Add(m_firstHitThresholdSlider, 0, wxEXPAND, 0);
+            renderSettingsSizer->Add(new wxStaticText(renderSettings, wxID_ANY, "Is box visible?"), 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 5);
+            renderSettingsSizer->Add(m_boxVisibleCheck, 0, wxEXPAND, 0);
+        }
 
-		m_renderMethodSelect = new wxComboBox(renderSettings, wxID_ANY, "Maximum Intensity Projection", wxDefaultPosition, wxDefaultSize, renderOptions, wxCB_READONLY);
-		m_renderMethodSelect->Disable();
-		m_firstHitThresholdSlider = new wxSlider(renderSettings, wxID_ANY, 0, 0, 100);
-		m_firstHitThresholdSlider->Disable();
-		m_boxVisibleCheck = new wxCheckBox(renderSettings, wxID_ANY, wxT("Is visible"));
-		m_boxVisibleCheck->Disable();
-		
-		renderSettingsSizer->Add(new wxStaticText(renderSettings, wxID_ANY, "Projection method"), 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 5);
-		renderSettingsSizer->Add(m_renderMethodSelect, 0, wxEXPAND, 0);
-		renderSettingsSizer->Add(new wxStaticText(renderSettings, wxID_ANY, "First hit threshold"), 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 5);
-		renderSettingsSizer->Add(m_firstHitThresholdSlider, 0, wxEXPAND, 0);
-		renderSettingsSizer->Add(new wxStaticText(renderSettings, wxID_ANY, "Is box visible?"), 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 5);
-		renderSettingsSizer->Add(m_boxVisibleCheck, 0, wxEXPAND, 0);
-	}
+        notebook->AddPage(renderSettings, "Rendering");
+        notebook->AddPage(new wxPanel(notebook, wxID_ANY), "Dataset Properties");
+        
 
-	notebook->AddPage(renderSettings, "Rendering");
-	notebook->AddPage(new wxPanel(notebook, wxID_ANY), "Dataset Properties");
-	
+        sidebarSizer->Add(notebook, 1, wxEXPAND, 0);
 
-	sidebarSizer->Add(notebook, 1, wxEXPAND, 0);
+        rootSplitter->SplitVertically(sidebar, viewsMainSplitter);
+        rootSplitter->SetSashGravity(0.05f);
 
-	rootSplitter->SplitVertically(sidebar, viewsMainSplitter);
-	rootSplitter->SetSashGravity(0.05f);
-
-	SetSizerAndFit(rootSizer);
-	rootSizer->SetSizeHints(this);
+        SetSizerAndFit(rootSizer);
+        rootSizer->SetSizeHints(this);
+    } catch(std::exception& e) {
+        wxLogDebug(e.what());
+    }
 }
 
 void MainWindow::UpdateProjectionMethod(wxCommandEvent& e)
 {
 	const ProjectionMethod methods [] = {
-		ProjectionMethod::MAX_INTENSITY, ProjectionMethod::AVERAGE, ProjectionMethod::FIRST_HIT,
+		ProjectionMethod::MAX_INTENSITY, ProjectionMethod::AVERAGE, 
+		ProjectionMethod::FIRST_HIT    , ProjectionMethod::COMPOSITE
 	};
 	m_rootCanvas3d->SetRenderMethod(methods[m_renderMethodSelect->GetSelection()],
 								    (R64) m_firstHitThresholdSlider->GetValue() / 100.0);	
@@ -152,25 +174,24 @@ void MainWindow::UpdateProjectionMethod(wxCommandEvent& e)
 
 void MainWindow::InitializeVolumeModel()
 {
-	wxGLCanvas * canvas = new wxGLCanvas(this, wxID_ANY);
-	
-	m_volumeModel = std::make_shared<VolumeModel>();
+	wxGLCanvas* canvas = new wxGLCanvas(this, wxID_ANY, nullptr);
 	
 	m_volumeModel->m_sharedContext = std::make_shared<wxGLContext>(canvas);
 	m_volumeModel->m_dataset		  = nullptr;
 	m_volumeModel->m_texture		  = {};
 
-	m_volumeModel->CreateTransferFuncTexture(canvas);
-
 	canvas->SetCurrent(*m_volumeModel->m_sharedContext);
 
-	glewExperimental = GL_TRUE;
-	GLenum status    = glewInit();
-	if (status != GLEW_OK)
-	{
-		const GLubyte* msg = glewGetErrorString(status);
-		throw std::exception(reinterpret_cast<const char*>(msg));
-	}
+    glewExperimental = GL_TRUE;
+    GLenum status    = glewInit();
+
+    m_volumeModel->CreateTransferFuncTexture(canvas);
+
+    //if (status != GLEW_OK)
+    //{
+    //    const GLubyte* msg = glewGetErrorString(status);
+    //    throw std::runtime_error(std::string("GLEW Error") + std::string(reinterpret_cast<const char*>(msg)));
+    //}
 
 	canvas->Destroy();
 }
