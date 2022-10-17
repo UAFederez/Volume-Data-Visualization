@@ -90,7 +90,7 @@ void main()
 		maxIntensity    = max(maxIntensity, currIntensity);
 		totalIntensity += currIntensity;
 
-		if (projectionMethod == 2u && currIntensity > (firstHitThreshold - minValue) / (maxValue - minValue))
+		if (projectionMethod == 2u && currIntensity > firstHitThreshold)
 			break;
 
 		numSamplesTotal += 1.0f;
