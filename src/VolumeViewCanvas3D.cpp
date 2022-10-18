@@ -16,14 +16,15 @@ void VolumeViewCanvas3D::HandleMouseScroll(wxMouseEvent& evt)
 	I32 rotation   = evt.GetWheelRotation();
 	auto dataSize  = m_volumeModel->m_dataset->DataSize();
 
-
 	const R64 relSpaceX = 1.0f;
 	const R64 relSpaceY = m_volumeModel->m_dataset->DataSpacing()[1] / m_volumeModel->m_dataset->DataSpacing()[0];
 	const R64 relSpaceZ = m_volumeModel->m_dataset->DataSpacing()[2] / m_volumeModel->m_dataset->DataSpacing()[0];
 
+	const R32 lenDiagonal = glm::length(glm::vec3(dataSize[0] * relSpaceX, dataSize[1] * relSpaceY, dataSize[2] * relSpaceZ) / 2.0f);
+
 	const float SPEED    = 5.0f;
-	const float MIN_DIST = std::min(std::min(dataSize[0], dataSize[1]), dataSize[2]);
-	const float MAX_DIST = std::max(std::max(dataSize[0], dataSize[1]), dataSize[2]) + 350.0f;
+	const float MIN_DIST = lenDiagonal + 50.0f;
+	const float MAX_DIST = lenDiagonal + 500.0f;
 
 	m_cameraPos.z += (m_volumeModel->m_dataset->DataSize()[2] / std::max(SPEED, 1.0f)) * (rotation > 0 ? -1.0f : 1.0f);
 	m_cameraPos.z  = std::max(MIN_DIST, std::min(m_cameraPos.z, MAX_DIST));

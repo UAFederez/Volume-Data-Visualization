@@ -61,17 +61,11 @@ void main()
 	vec3 rayDir  = normalize(PosInWorld - cameraPosition);
 	vec3 currPos = PosInWorld;
 
-	float maxIntensity    = (texture(texture3d, currPos).r - minValue) / (maxValue - minValue);
-	float currIntensity   = maxIntensity;
-	float totalIntensity  = 0.0f;
-	float numSamplesTotal = 0.0f;
-
-
-
-	vec3 texturePos = vec3(0.5f);
-	vec3 posAtMax   = currPos;
-
-	vec4 outputColor  = vec4(0.0f, 0.0f, 0.0f, 0.0f);
+	float maxIntensity  = (texture(texture3d, currPos).r - minValue) / (maxValue - minValue);
+	float currIntensity = maxIntensity;
+	
+	vec3 texturePos  = vec3(0.5f);
+	vec4 outputColor = vec4(0.0f, 0.0f, 0.0f, 0.0f);
 
 	const vec3 dx = vec3(1.0f, 0.0f, 0.0f);
 	const vec3 dy = vec3(0.0f, 1.0f, 0.0f);
@@ -96,26 +90,22 @@ void main()
 		if (isOutsideX || isOutsideY || isOutsideZ)
 			break;
 
-		currIntensity   = (texture(texture3d, texturePos).r - minValue) / (maxValue - minValue);
-		posAtMax		= currIntensity > maxIntensity ? currPos : posAtMax;
-		maxIntensity    = max(maxIntensity, currIntensity);
-		totalIntensity += currIntensity;
-
-		numSamplesTotal += 1.0f;
+		currIntensity = (texture(texture3d, texturePos).r - minValue) / (maxValue - minValue);
 
 		// Compute gradient
 		float gx = texture(texture3d, CalculateTexturePos(currPos + dx)).r - texture(texture3d, CalculateTexturePos(currPos - dx)).r;
 		float gy = texture(texture3d, CalculateTexturePos(currPos + dy)).r - texture(texture3d, CalculateTexturePos(currPos - dy)).r;
 		float gz = texture(texture3d, CalculateTexturePos(currPos + dz)).r - texture(texture3d, CalculateTexturePos(currPos - dz)).r;
 
-		vec3 gradient   = vec3(gx, gy, gz) / 2.0f;
+		vec3 gradient   = normalize(vec3(gx, gy, gz) / 2.0f);
 		vec3 lightDir   = normalize(volumeSize - currPos);	// volumeSize is the position of the light upper right corner
 		vec3 reflectDir = reflect(-lightDir, gradient);
 
 		vec3 ambient  = vec3(0.25f);
-		vec3 diffuse  = vec3(1.00f) * max(0.5f, dot(normalize(gradient), lightDir));
+		vec3 diffuse  = vec3(1.00f) * max(0.5f, dot(gradient, lightDir));
+		vec3 specular = vec3(1.00f) * pow(max(dot(rayDir, reflectDir), 0.0f), 32) * 0.5f;
 
-		vec4 transfer   = vec4(ambient + diffuse, 1.0f) * texture(textureColor, vec2(currIntensity, 0.0f));
+		vec4 transfer   = vec4(ambient + diffuse + specular, 1.0f) * texture(textureColor, vec2(currIntensity, 0.0f));
 		outputColor.rgb += contribution * transfer.a * transfer.rgb;
 		contribution    *= (1 - transfer.a);
 		outputColor.a    = mix(outputColor.a, 1.0f, transfer.a);

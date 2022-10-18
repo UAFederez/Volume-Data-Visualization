@@ -10,10 +10,10 @@ void MainWindow::OnPaint(wxPaintEvent& e)
         if(m_volumeModel->m_sharedContext == nullptr)
         {
             InitializeVolumeModel();
-            m_rootCanvas3d->Init();
-            m_sagittalView->Init();
-            m_coronalView->Init();
-            m_horizontalView->Init();
+            //m_rootCanvas3d->Init();
+            //m_sagittalView->Init();
+            //m_coronalView->Init();
+            //m_horizontalView->Init();
         }
     } catch(std::exception& e) {
         wxLogDebug("OnPaint %s", e.what());
@@ -177,21 +177,15 @@ void MainWindow::InitializeVolumeModel()
 	wxGLCanvas* canvas = new wxGLCanvas(this, wxID_ANY, nullptr);
 	
 	m_volumeModel->m_sharedContext = std::make_shared<wxGLContext>(canvas);
-	m_volumeModel->m_dataset		  = nullptr;
-	m_volumeModel->m_texture		  = {};
+	m_volumeModel->m_dataset = nullptr;
+	m_volumeModel->m_texture = {};
 
 	canvas->SetCurrent(*m_volumeModel->m_sharedContext);
 
     glewExperimental = GL_TRUE;
     GLenum status    = glewInit();
 
-    m_volumeModel->CreateTransferFuncTexture(canvas);
-
-    //if (status != GLEW_OK)
-    //{
-    //    const GLubyte* msg = glewGetErrorString(status);
-    //    throw std::runtime_error(std::string("GLEW Error") + std::string(reinterpret_cast<const char*>(msg)));
-    //}
+    //m_volumeModel->CreateTransferFuncTexture(canvas);
 
 	canvas->Destroy();
 }

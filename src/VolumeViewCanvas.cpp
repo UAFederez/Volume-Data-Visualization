@@ -90,15 +90,15 @@ void VolumeTexture::LoadFromDataset(VolumeDataset* dataset)
     glTexParameteri (GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
     glTexParameteri (GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_BORDER);
     glTexParameterfv(GL_TEXTURE_3D, GL_TEXTURE_BORDER_COLOR, borderColor);
-    glTexParameteri (GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri (GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
     glTexParameteri (GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     GLenum type = 0;
     switch (dataset->DataType())
     {
-    case VolumeDataType::UINT8 : type = GL_UNSIGNED_BYTE ; break;
-    case VolumeDataType::UINT16: type = GL_UNSIGNED_SHORT; break;
-    case VolumeDataType::FLOAT : type = GL_FLOAT         ; break;
+        case VolumeDataType::UINT8 : type = GL_UNSIGNED_BYTE ; break;
+        case VolumeDataType::UINT16: type = GL_UNSIGNED_SHORT; break;
+        case VolumeDataType::FLOAT : type = GL_FLOAT         ; break;
     }
 
     // Push 3D texture data to the GPU
@@ -114,6 +114,7 @@ void VolumeTexture::LoadFromDataset(VolumeDataset* dataset)
         GL_LUMINANCE,
         type, 
         data);
+    glGenerateMipmap(GL_TEXTURE_3D);
     wxLogDebug("glGetError: %d", glGetError());
     glBindTexture(GL_TEXTURE_3D, 0);
 

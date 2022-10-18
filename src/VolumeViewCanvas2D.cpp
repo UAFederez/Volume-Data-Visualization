@@ -176,6 +176,15 @@ void VolumeViewCanvas2D::Render(wxPaintEvent& evt)
 
 			glm::mat4 projMatrix  = glm::ortho(0.0f, (float) clientRect.width, (float) clientRect.height, 0.0f, -1.0f, 1.0f);
 
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_3D, m_volumeModel->m_texture.GetTextureID());
+
+			glActiveTexture(GL_TEXTURE1);
+			glBindTexture(GL_TEXTURE_2D, m_volumeModel->m_transferFunction.m_cmapTex);
+
+			m_imageShader.SetInt("texture3d", 0);
+			m_imageShader.SetInt("textureColor", 1);
+
 			m_imageShader.UseProgram();
 			m_imageShader.SetMatrix4x4("model", modelMatrix);
 			m_imageShader.SetMatrix4x4("view", viewMatrix);
@@ -186,7 +195,7 @@ void VolumeViewCanvas2D::Render(wxPaintEvent& evt)
 			m_imageShader.SetFloat("maxValue", m_volumeModel->m_dataset->GetMaxInDoubleRange());
 			m_imageShader.SetFloat("minValue", m_volumeModel->m_dataset->GetMinInDoubleRange());
 
-			glBindTexture(GL_TEXTURE_3D, m_volumeModel->m_texture.GetTextureID());
+			
 			glBindVertexArray(m_imageVao);
 			glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, NULL);
 		}
