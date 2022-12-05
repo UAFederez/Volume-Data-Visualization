@@ -22,13 +22,12 @@ void VolumeModel::CreateTransferFuncTexture(wxWindow* parent)
     canvas->SetCurrent(*m_sharedContext);
 
     // Initialize Data
-    m_transferFunction.AddColorStop(0.00000f, 0.0f, 0.0f, 0.0f);
-    m_transferFunction.AddColorStop(0.40000f, 0.0f, 1.0f, 0.0f);
-    m_transferFunction.AddColorStop(1.00000f, 1.0f, 0.0f, 0.0f);
+    m_transferFunction.AddColorStop(0.00f, 0.0f, 0.8f, 1.0f);
+    m_transferFunction.AddColorStop(1.00f, 1.0f, 0.8f, 0.0f);
 
-    m_transferFunction.AddOpacityStop(0.00000f, 0.00000f);
-    m_transferFunction.AddOpacityStop(0.40000f, 0.00000f);
-    m_transferFunction.AddOpacityStop(1.00000f, 1.00000f);
+    m_transferFunction.AddOpacityStop(0.00f, 0.00f);
+    m_transferFunction.AddOpacityStop(0.25f, 0.00f);
+    m_transferFunction.AddOpacityStop(1.00f, 1.00f);
 
     glEnable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

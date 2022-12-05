@@ -97,7 +97,7 @@ void main()
 		float gy = texture(texture3d, CalculateTexturePos(currPos + dy)).r - texture(texture3d, CalculateTexturePos(currPos - dy)).r;
 		float gz = texture(texture3d, CalculateTexturePos(currPos + dz)).r - texture(texture3d, CalculateTexturePos(currPos - dz)).r;
 
-		vec3 gradient   = normalize(vec3(gx, gy, gz) / 2.0f);
+		vec3 gradient   = -normalize(vec3(gx, gy, gz) / 2.0f);
 		vec3 lightDir   = normalize(volumeSize - currPos);	// volumeSize is the position of the light upper right corner
 		vec3 reflectDir = reflect(-lightDir, gradient);
 

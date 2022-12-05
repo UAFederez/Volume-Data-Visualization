@@ -130,7 +130,7 @@ void main()
 	float gy = texture(texture3d, CalculateTexturePos(posAtMax + dy)).r - texture(texture3d, CalculateTexturePos(posAtMax - dy)).r;
 	float gz = texture(texture3d, CalculateTexturePos(posAtMax + dz)).r - texture(texture3d, CalculateTexturePos(posAtMax - dz)).r;
 
-	vec3 gradient   = vec3(gx, gy, gz) / 2.0f;
+	vec3 gradient   = -vec3(gx, gy, gz) / 2.0f;
 	vec3 lightDir   = normalize(volumeSize - posAtMax);	// volumeSize is the position of the light upper right corner
 	vec3 reflectDir = reflect(lightDir, gradient);
 

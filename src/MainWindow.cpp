@@ -185,7 +185,7 @@ void MainWindow::InitializeVolumeModel()
     glewExperimental = GL_TRUE;
     GLenum status    = glewInit();
 
-    //m_volumeModel->CreateTransferFuncTexture(canvas);
+    m_volumeModel->CreateTransferFuncTexture(canvas);
 
 	canvas->Destroy();
 }
