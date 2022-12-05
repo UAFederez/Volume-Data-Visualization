@@ -143,7 +143,7 @@ void main()
 	switch (projectionMethod)
 	{
 		case 0u: break;
-		case 1u: finalIntensity = totalIntensity / numSamplesTotal; break;
+		case 1u: finalIntensity = totalIntensity * 3.0 / numSamplesTotal; break;
 		case 2u: finalIntensity = currIntensity; break;
 	}
 
