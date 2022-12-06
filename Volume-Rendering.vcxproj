@@ -1,0 +1,231 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Debug|x64">
+      <Configuration>Debug</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|x64">
+      <Configuration>Release</Configuration>
+      <Platform>x64</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <VCProjectVersion>16.0</VCProjectVersion>
+    <ProjectGuid>{3461BB09-D595-4EB4-B221-83EAB1E4B07E}</ProjectGuid>
+    <Keyword>Win32Proj</Keyword>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
+    <ConfigurationType>Application</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v142</PlatformToolset>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="Shared">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <LinkIncremental>true</LinkIncremental>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+    </ClCompile>
+    <Link>
+      <TargetMachine>MachineX86</TargetMachine>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+    </ClCompile>
+    <Link>
+      <TargetMachine>MachineX86</TargetMachine>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <SubSystem>Windows</SubSystem>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)\thirdparty\glm;$(SolutionDir)\thirdparty\glad;$(SolutionDir)\thirdparty\imgui;$(SolutionDir)\thirdparty\imgui\imgui\backends;$(SolutionDir)\thirdparty\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(SolutionDir)\thirdparty\glfw\build\src\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3.lib;opengl32.lib;gdi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <AdditionalIncludeDirectories>$(SolutionDir)\thirdparty\glm;$(SolutionDir)\thirdparty\glad;$(SolutionDir)\thirdparty\imgui;$(SolutionDir)\thirdparty\imgui\imgui\backends;$(SolutionDir)\thirdparty\glfw\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+    </ClCompile>
+    <Link>
+      <AdditionalLibraryDirectories>$(SolutionDir)\thirdparty\glfw\build\src\Debug;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>glfw3.lib;opengl32.lib;gdi32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="src\AsyncTask.h" />
+    <ClInclude Include="src\Graphics\Shader.h" />
+    <ClInclude Include="src\Graphics\Texture.h" />
+    <ClInclude Include="src\IO\FileDialog.h" />
+    <ClInclude Include="src\IO\MouseButtonState.h" />
+    <ClInclude Include="src\MainApplication.h" />
+    <ClInclude Include="src\Model\TransferFunction1D.h" />
+    <ClInclude Include="src\Model\VolumeDataset.h" />
+    <ClInclude Include="src\Model\VolumeModel.h" />
+    <ClInclude Include="src\UI\VolumeViewWindow.h" />
+    <ClInclude Include="thirdparty\glfw\deps\getopt.h" />
+    <ClInclude Include="thirdparty\glfw\deps\glad\gl.h" />
+    <ClInclude Include="thirdparty\glfw\deps\glad\gles2.h" />
+    <ClInclude Include="thirdparty\glfw\deps\glad\vulkan.h" />
+    <ClInclude Include="thirdparty\glfw\deps\linmath.h" />
+    <ClInclude Include="thirdparty\glfw\deps\mingw\dinput.h" />
+    <ClInclude Include="thirdparty\glfw\deps\mingw\xinput.h" />
+    <ClInclude Include="thirdparty\glfw\deps\mingw\_mingw_dxhelper.h" />
+    <ClInclude Include="thirdparty\glfw\deps\nuklear.h" />
+    <ClInclude Include="thirdparty\glfw\deps\nuklear_glfw_gl2.h" />
+    <ClInclude Include="thirdparty\glfw\deps\stb_image_write.h" />
+    <ClInclude Include="thirdparty\glfw\deps\tinycthread.h" />
+    <ClInclude Include="thirdparty\glfw\deps\vs2008\stdint.h" />
+    <ClInclude Include="thirdparty\glfw\include\glfw\glfw3.h" />
+    <ClInclude Include="thirdparty\glfw\include\glfw\glfw3native.h" />
+    <ClInclude Include="thirdparty\glfw\src\cocoa_joystick.h" />
+    <ClInclude Include="thirdparty\glfw\src\cocoa_platform.h" />
+    <ClInclude Include="thirdparty\glfw\src\cocoa_time.h" />
+    <ClInclude Include="thirdparty\glfw\src\internal.h" />
+    <ClInclude Include="thirdparty\glfw\src\linux_joystick.h" />
+    <ClInclude Include="thirdparty\glfw\src\mappings.h" />
+    <ClInclude Include="thirdparty\glfw\src\null_joystick.h" />
+    <ClInclude Include="thirdparty\glfw\src\null_platform.h" />
+    <ClInclude Include="thirdparty\glfw\src\platform.h" />
+    <ClInclude Include="thirdparty\glfw\src\posix_poll.h" />
+    <ClInclude Include="thirdparty\glfw\src\posix_thread.h" />
+    <ClInclude Include="thirdparty\glfw\src\posix_time.h" />
+    <ClInclude Include="thirdparty\glfw\src\win32_joystick.h" />
+    <ClInclude Include="thirdparty\glfw\src\win32_platform.h" />
+    <ClInclude Include="thirdparty\glfw\src\win32_thread.h" />
+    <ClInclude Include="thirdparty\glfw\src\win32_time.h" />
+    <ClInclude Include="thirdparty\glfw\src\wl_platform.h" />
+    <ClInclude Include="thirdparty\glfw\src\x11_platform.h" />
+    <ClInclude Include="thirdparty\glfw\src\xkb_unicode.h" />
+    <ClInclude Include="thirdparty\imgui\backends\imgui_impl_allegro5.h" />
+    <ClInclude Include="thirdparty\imgui\backends\imgui_impl_android.h" />
+    <ClInclude Include="thirdparty\imgui\backends\imgui_impl_dx10.h" />
+    <ClInclude Include="thirdparty\imgui\backends\imgui_impl_dx11.h" />
+    <ClInclude Include="thirdparty\imgui\backends\imgui_impl_dx12.h" />
+    <ClInclude Include="thirdparty\imgui\backends\imgui_impl_dx9.h" />
+    <ClInclude Include="thirdparty\imgui\backends\imgui_impl_glfw.h" />
+    <ClInclude Include="thirdparty\imgui\backends\imgui_impl_glut.h" />
+    <ClInclude Include="thirdparty\imgui\backends\imgui_impl_metal.h" />
+    <ClInclude Include="thirdparty\imgui\backends\imgui_impl_opengl2.h" />
+    <ClInclude Include="thirdparty\imgui\backends\imgui_impl_opengl3.h" />
+    <ClInclude Include="thirdparty\imgui\backends\imgui_impl_opengl3_loader.h" />
+    <ClInclude Include="thirdparty\imgui\backends\imgui_impl_osx.h" />
+    <ClInclude Include="thirdparty\imgui\backends\imgui_impl_sdl.h" />
+    <ClInclude Include="thirdparty\imgui\backends\imgui_impl_sdlrenderer.h" />
+    <ClInclude Include="thirdparty\imgui\backends\imgui_impl_vulkan.h" />
+    <ClInclude Include="thirdparty\imgui\backends\imgui_impl_wgpu.h" />
+    <ClInclude Include="thirdparty\imgui\backends\imgui_impl_win32.h" />
+    <ClInclude Include="thirdparty\imgui\examples\example_allegro5\imconfig_allegro5.h" />
+    <ClInclude Include="thirdparty\imgui\examples\libs\glfw\include\glfw\glfw3.h" />
+    <ClInclude Include="thirdparty\imgui\examples\libs\glfw\include\glfw\glfw3native.h" />
+    <ClInclude Include="thirdparty\imgui\examples\libs\usynergy\uSynergy.h" />
+    <ClInclude Include="thirdparty\imgui\imconfig.h" />
+    <ClInclude Include="thirdparty\imgui\imgui.h" />
+    <ClInclude Include="thirdparty\imgui\imgui_internal.h" />
+    <ClInclude Include="thirdparty\imgui\imstb_rectpack.h" />
+    <ClInclude Include="thirdparty\imgui\imstb_textedit.h" />
+    <ClInclude Include="thirdparty\imgui\imstb_truetype.h" />
+    <ClInclude Include="thirdparty\imgui\misc\cpp\imgui_stdlib.h" />
+    <ClInclude Include="thirdparty\imgui\misc\freetype\imgui_freetype.h" />
+    <ClInclude Include="thirdparty\imgui\misc\single_file\imgui_single_file.h" />
+    <ClInclude Include="thirdparty\src\AsyncTask.h" />
+    <ClInclude Include="thirdparty\src\graphics\Shader.h" />
+    <ClInclude Include="thirdparty\src\graphics\Texture.h" />
+    <ClInclude Include="thirdparty\src\io\FileDialog.h" />
+    <ClInclude Include="thirdparty\src\io\MouseButtonState.h" />
+    <ClInclude Include="thirdparty\src\MainApplication.h" />
+    <ClInclude Include="thirdparty\src\model\TransferFunction1D.h" />
+    <ClInclude Include="thirdparty\src\model\VolumeDataset.h" />
+    <ClInclude Include="thirdparty\src\model\VolumeModel.h" />
+    <ClInclude Include="thirdparty\src\ui\VolumeViewWindow.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="thirdparty\glfw\examples\glfw.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="src\Graphics\Shader.cpp" />
+    <ClCompile Include="src\Graphics\Texture.cpp" />
+    <ClCompile Include="src\IO\FileDialog.cpp" />
+    <ClCompile Include="src\IO\MouseButtonState.cpp" />
+    <ClCompile Include="src\main.cpp" />
+    <ClCompile Include="src\MainApplication.cpp" />
+    <ClCompile Include="src\Model\TransferFunction1D.cpp" />
+    <ClCompile Include="src\Model\VolumeDataset.cpp" />
+    <ClCompile Include="src\UI\VolumeViewWindow.cpp" />
+    <ClCompile Include="thirdparty\glad\glad.c" />
+    <ClCompile Include="thirdparty\imgui\imgui\backends\imgui_impl_glfw.cpp" />
+    <ClCompile Include="thirdparty\imgui\imgui\backends\imgui_impl_opengl3.cpp" />
+    <ClCompile Include="thirdparty\imgui\imgui\imgui.cpp" />
+    <ClCompile Include="thirdparty\imgui\imgui\imgui_draw.cpp" />
+    <ClCompile Include="thirdparty\imgui\imgui\imgui_tables.cpp" />
+    <ClCompile Include="thirdparty\imgui\imgui\imgui_widgets.cpp" />
+  </ItemGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

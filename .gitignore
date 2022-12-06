@@ -2,6 +2,8 @@
 data/
 *.swp
 
+imgui.ini
+
 ## Ignore folder containing third-party libraries
 
 ## Ignore Visual Studio temporary files, build results, and
