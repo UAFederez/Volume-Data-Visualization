@@ -10,7 +10,7 @@
 #include "Graphics/Texture.h"
 #include "Graphics/Shader.h"
 #include "IO/MouseButtonState.h"
-#include "UI/VolumeViewWindow.h"
+#include "UI/VolumeViewWindow3D.h"
 #include "AsyncTask.h"
 
 namespace vr
@@ -39,7 +39,7 @@ namespace vr
 
             Shader m_raycastShader;
 
-            VolumeViewWindow m_viewport3d;
+            VolumeViewWindow3D m_viewport3d;
 
             std::unique_ptr<VolumeModel> m_volumeModel = {};
             AsyncTask<std::optional<VolumeDataset>> m_loadDatasetTask;

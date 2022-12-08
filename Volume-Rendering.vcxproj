@@ -128,6 +128,7 @@
     <ClInclude Include="src\Model\VolumeDataset.h" />
     <ClInclude Include="src\Model\VolumeModel.h" />
     <ClInclude Include="src\UI\VolumeViewWindow.h" />
+    <ClInclude Include="src\UI\VolumeViewWindow3D.h" />
     <ClInclude Include="thirdparty\glfw\deps\getopt.h" />
     <ClInclude Include="thirdparty\glfw\deps\glad\gl.h" />
     <ClInclude Include="thirdparty\glfw\deps\glad\gles2.h" />
@@ -217,6 +218,7 @@
     <ClCompile Include="src\Model\TransferFunction1D.cpp" />
     <ClCompile Include="src\Model\VolumeDataset.cpp" />
     <ClCompile Include="src\UI\VolumeViewWindow.cpp" />
+    <ClCompile Include="src\UI\VolumeViewWindow3D.cpp" />
     <ClCompile Include="thirdparty\glad\glad.c" />
     <ClCompile Include="thirdparty\imgui\imgui\backends\imgui_impl_glfw.cpp" />
     <ClCompile Include="thirdparty\imgui\imgui\backends\imgui_impl_opengl3.cpp" />

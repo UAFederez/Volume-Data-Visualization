@@ -9,6 +9,7 @@
 
 #include "IO/FileDialog.h"
 #include "UI/VolumeViewWindow.h"
+#include "UI/VolumeViewWindow3D.h"
 
 namespace vr
 {
@@ -46,7 +47,7 @@ namespace vr
         ImGuiIO& io = ImGui::GetIO(); (void) io;
         io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 
-        ImGui::StyleColorsLight();
+        // ImGui::StyleColorsLight();
         ImGui_ImplGlfw_InitForOpenGL(m_window, true);
         ImGui_ImplOpenGL3_Init("#version 450");
 
@@ -55,9 +56,9 @@ namespace vr
 
     void MainApplication::RunMainLoop()
     {
-        ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar | ImGuiWindowFlags_NoDocking |
-                                       ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | 
-                                       ImGuiWindowFlags_NoResize | ImGuiWindowFlags_NoMove |
+        ImGuiWindowFlags windowFlags = ImGuiWindowFlags_MenuBar               | ImGuiWindowFlags_NoDocking   |
+                                       ImGuiWindowFlags_NoTitleBar            | ImGuiWindowFlags_NoCollapse  |
+                                       ImGuiWindowFlags_NoResize              | ImGuiWindowFlags_NoMove      |
                                        ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
         ImGuiIO& io = ImGui::GetIO();
 
@@ -66,7 +67,7 @@ namespace vr
         bool willOpenMetadataDlg = false;
         bool isProcessingFile    = false;
         std::string filePath = "";
-        VolumeViewWindow window{};
+        VolumeViewWindow3D window{};
 
         while (!glfwWindowShouldClose(m_window))
         {
