@@ -143,7 +143,7 @@ void main()
 
 	switch (projMethod)
 	{
-		case 1u: finalIntensity = totalIntensity / numTotalSamples;break;
+		case 1u: finalIntensity = totalIntensity * 2.0f / numTotalSamples;break;
 		case 2u: finalIntensity = currIntensity ;break;
 		default: ;break;
 	}
