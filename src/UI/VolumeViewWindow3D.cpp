@@ -113,7 +113,8 @@ namespace vr
                 {
                     glm::vec2 currDragVec = glm::vec2(m_leftButtonState.GetDragVecX(), m_leftButtonState.GetDragVecY());
                     if (currDragVec != m_prevDragVec)
-                        m_isCacheValid = false;
+                        Refresh();
+                        
 
                     m_mouseHemi0.x =  (2.0 * (m_leftButtonState.GetButtonX() - m_leftButtonState.GetDragVecX() - cursorScreenPos.x) - avail.x) / (R32) avail.x;
                     m_mouseHemi0.y = -(2.0 * (m_leftButtonState.GetButtonY() - m_leftButtonState.GetDragVecY() - cursorScreenPos.y) - avail.y) / (R32) avail.y;
@@ -141,8 +142,11 @@ namespace vr
             }
 
 
-            if(m_prevHeight != currHeight || m_prevWidth != currWidth)
-                m_isCacheValid = false;
+            if (m_prevHeight != currHeight || m_prevWidth != currWidth)
+            {
+                Refresh();
+            }
+                
 
             if (!m_isCacheValid)
             {
