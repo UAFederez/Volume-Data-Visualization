@@ -6,7 +6,7 @@ This software allows for the 3D visualization of volumetric datasets. The curren
 
 ## Dependencies
 
--   wxWidgets version 3.2.1 (used as the cross-platform GUI framework)
+-   [ImGUI](https://github.com/ocornut/imgui/) and [GLFW](https://github.com/glfw/glfw) for the UI and input controls
 -   OpenGL Extension Wrangler Library (or GLEW, for extended OpenGL 3D rendering functionality, [link](https://glew.sourceforge.net/))
 -   OpenGL Mathematics (or glm, mathematics library used for linear algebra functions, [link](https://github.com/g-truc/glm))
 
