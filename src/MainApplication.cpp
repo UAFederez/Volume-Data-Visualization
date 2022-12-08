@@ -52,6 +52,10 @@ namespace vr
         ImGui_ImplOpenGL3_Init("#version 450");
 
         m_viewport3d.Initialize();
+        for (VolumeViewWindow2D& view : m_crossSectionViews)
+        {
+            view.Initialize();
+        }
     }
 
     void MainApplication::RunMainLoop()
@@ -67,7 +71,6 @@ namespace vr
         bool willOpenMetadataDlg = false;
         bool isProcessingFile    = false;
         std::string filePath = "";
-        VolumeViewWindow3D window{};
 
         while (!glfwWindowShouldClose(m_window))
         {
@@ -195,7 +198,7 @@ namespace vr
                         
                         TransferFunction1D tf = {};
                         tf.AddColorStop(0.00f, 0.0f, 0.8f, 1.0f);
-                        tf.AddColorStop(1.00f, 1.0f, 0.8f, 0.0f);
+                        tf.AddColorStop(1.00f, 0.8f, 1.0f, 0.0f);
                         tf.AddOpacityStop(0.00f, 0.00f);
                         tf.AddOpacityStop(0.25f, 0.00f);
                         tf.AddOpacityStop(1.00f, 1.00f);
@@ -207,6 +210,11 @@ namespace vr
                         // Update the volume model of the viewports
                         m_viewport3d.UpdateVolumeModel(m_volumeModel.get());
                         m_viewport3d.Refresh();
+                        for (VolumeViewWindow2D& view : m_crossSectionViews)
+                        {
+                            view.UpdateVolumeModel(m_volumeModel.get());
+                            view.Refresh();
+                        }
                     }
                     else
                     {
@@ -287,7 +295,10 @@ namespace vr
                 ImVec2 availArea = ImGui::GetContentRegionAvail();
 
                 static int inputRayFunctionIdx = 0;
+                static int prevInputRayFunctionIdx = inputRayFunctionIdx;
+
                 static float firstHitThreshold = 1.0f;
+                static float prevFirstHitThreshold = prevFirstHitThreshold;
 
                 static const char* rayFunctionChoices[] = { 
                     "Maximum intensity projection", 
@@ -319,7 +330,14 @@ namespace vr
                         ImVec4(1, 1, 1, 1),
                         ImVec4(0, 0, 0, 1)
                     );
-                    m_viewport3d.UpdateProjectionMethod(rayFunctionVals[inputRayFunctionIdx], firstHitThreshold);
+
+                    if (inputRayFunctionIdx != prevInputRayFunctionIdx || firstHitThreshold != prevFirstHitThreshold)
+                    {
+                        m_viewport3d.UpdateProjectionMethod(rayFunctionVals[inputRayFunctionIdx], firstHitThreshold);
+                        prevInputRayFunctionIdx = inputRayFunctionIdx;
+                        prevFirstHitThreshold   = firstHitThreshold;
+                    }
+                    
                 }
                 else
                 {
@@ -328,9 +346,23 @@ namespace vr
             }
             ImGui::End();
 
+            // Debug window
+#ifdef _DEBUG
+            ImGui::Begin("Debug Info");
+            {
+                ImGui::Text("GL_VERSION : %s", glGetString(GL_VERSION));
+                ImGui::Text("Frames/sec : %.2f", ImGui::GetIO().Framerate);
+            }
+            ImGui::End();
+#endif
+
             // Main viewports
             m_viewport3d.RenderUI(m_window);
-
+            for (VolumeViewWindow2D& view : m_crossSectionViews)
+            {
+                view.RenderUI(m_window);
+            }
+            
             ImGui::End(); // dockspace
 
             ImGui::Render();

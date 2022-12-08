@@ -11,6 +11,7 @@
 #include "Graphics/Shader.h"
 #include "IO/MouseButtonState.h"
 #include "UI/VolumeViewWindow3D.h"
+#include "UI/VolumeViewWindow2D.h"
 #include "AsyncTask.h"
 
 namespace vr
@@ -39,6 +40,11 @@ namespace vr
 
             Shader m_raycastShader;
 
+            VolumeViewWindow2D m_crossSectionViews[3] = {
+                VolumeViewWindow2D{ "Coronal"   , AnatomicalAxis::CORONAL    },
+                VolumeViewWindow2D{ "Sagittal"  , AnatomicalAxis::SAGITTAL   },
+                VolumeViewWindow2D{ "Horizontal", AnatomicalAxis::HORIZONTAL },
+            };
             VolumeViewWindow3D m_viewport3d;
 
             std::unique_ptr<VolumeModel> m_volumeModel = {};
