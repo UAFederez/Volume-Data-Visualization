@@ -39,8 +39,16 @@ namespace vr
             glm::mat4 m_prevRotation  = glm::mat4(1.0f);
 
             glm::vec2 m_prevDragVec   = glm::vec2(1.0f);
+            R32 m_distAlongZoomAxis     = 0.0f;
+            R32 m_prevDistAlongZoomAxis = m_distAlongZoomAxis;
 
+            // Shader responsible for drawing the outline box around the 3d visualization
+            Shader m_volumeBoundsShader;
+            
+            // Shader responsible for MIP, AIP and first-hit raycasting
             Shader m_volumeShaderSimple;
+
+            // Shader responsible for composite shading
             Shader m_volumeShaderComposite;
 
 
