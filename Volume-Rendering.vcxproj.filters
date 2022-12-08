@@ -31,6 +31,9 @@
     <Filter Include="Source Files\UI">
       <UniqueIdentifier>{3bff30eb-9d42-4937-bac7-535a5edfe7da}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Resource Files\shaders">
+      <UniqueIdentifier>{0943116c-b269-4a2d-9b72-cc746f541207}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="thirdparty\glfw\deps\getopt.h">
@@ -291,6 +294,9 @@
     <ClInclude Include="src\UI\VolumeViewWindow3D.h">
       <Filter>Source Files\UI</Filter>
     </ClInclude>
+    <ClInclude Include="src\UI\VolumeViewWindow2D.h">
+      <Filter>Source Files\UI</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="thirdparty\glfw\examples\glfw.rc">
@@ -349,5 +355,34 @@
     <ClCompile Include="src\UI\VolumeViewWindow3D.cpp">
       <Filter>Source Files\UI</Filter>
     </ClCompile>
+    <ClCompile Include="src\UI\VolumeViewWindow2D.cpp">
+      <Filter>Source Files\UI</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\screen_quad_frag.glsl">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="shaders\screen_quad_vert.glsl">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="shaders\volume_cross_section_frag.glsl">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="shaders\volume_cross_section_vert.glsl">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="shaders\volume_raycast_border_frag.glsl">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="shaders\volume_raycast_composite_frag.glsl">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="shaders\volume_raycast_frag.glsl">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
+    <None Include="shaders\volume_raycast_vert.glsl">
+      <Filter>Resource Files\shaders</Filter>
+    </None>
   </ItemGroup>
 </Project>

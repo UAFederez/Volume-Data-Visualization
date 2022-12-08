@@ -128,6 +128,7 @@
     <ClInclude Include="src\Model\VolumeDataset.h" />
     <ClInclude Include="src\Model\VolumeModel.h" />
     <ClInclude Include="src\UI\VolumeViewWindow.h" />
+    <ClInclude Include="src\UI\VolumeViewWindow2D.h" />
     <ClInclude Include="src\UI\VolumeViewWindow3D.h" />
     <ClInclude Include="thirdparty\glfw\deps\getopt.h" />
     <ClInclude Include="thirdparty\glfw\deps\glad\gl.h" />
@@ -218,6 +219,7 @@
     <ClCompile Include="src\Model\TransferFunction1D.cpp" />
     <ClCompile Include="src\Model\VolumeDataset.cpp" />
     <ClCompile Include="src\UI\VolumeViewWindow.cpp" />
+    <ClCompile Include="src\UI\VolumeViewWindow2D.cpp" />
     <ClCompile Include="src\UI\VolumeViewWindow3D.cpp" />
     <ClCompile Include="thirdparty\glad\glad.c" />
     <ClCompile Include="thirdparty\imgui\imgui\backends\imgui_impl_glfw.cpp" />
@@ -226,6 +228,16 @@
     <ClCompile Include="thirdparty\imgui\imgui\imgui_draw.cpp" />
     <ClCompile Include="thirdparty\imgui\imgui\imgui_tables.cpp" />
     <ClCompile Include="thirdparty\imgui\imgui\imgui_widgets.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="shaders\screen_quad_frag.glsl" />
+    <None Include="shaders\screen_quad_vert.glsl" />
+    <None Include="shaders\volume_cross_section_frag.glsl" />
+    <None Include="shaders\volume_cross_section_vert.glsl" />
+    <None Include="shaders\volume_raycast_border_frag.glsl" />
+    <None Include="shaders\volume_raycast_composite_frag.glsl" />
+    <None Include="shaders\volume_raycast_frag.glsl" />
+    <None Include="shaders\volume_raycast_vert.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
