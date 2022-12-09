@@ -34,6 +34,7 @@ namespace vr
             throw std::runtime_error("Error: Could not initialize GLFW window");
 
         glfwMakeContextCurrent(m_window);
+        glfwSwapInterval(0);
 
         if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
             throw std::runtime_error("Error: Could not initialize GLAD");
