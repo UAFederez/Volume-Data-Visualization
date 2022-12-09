@@ -200,7 +200,6 @@ namespace vr
                         tf.AddColorStop(0.00f, 0.0f, 0.8f, 1.0f);
                         tf.AddColorStop(1.00f, 0.8f, 1.0f, 0.0f);
                         tf.AddOpacityStop(0.00f, 0.00f);
-                        tf.AddOpacityStop(0.25f, 0.00f);
                         tf.AddOpacityStop(1.00f, 1.00f);
                         
                         tf.CreateTransferFunctionTexture();

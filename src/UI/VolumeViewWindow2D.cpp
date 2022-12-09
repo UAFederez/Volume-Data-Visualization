@@ -109,11 +109,17 @@ namespace vr
                     glm::vec3 y_permute = glm::vec3(0.0f);
                     glm::vec3 z_permute = glm::vec3(0.0f);
                     
+                    const auto dataSpacing = m_volumeModel->GetDataSpacing();
+                    const auto spacing = glm::vec3(dataSpacing[0], dataSpacing[1], dataSpacing[2]) / (R32) dataSpacing[0];
+
+                    glm::vec2 imageDimension = glm::vec2(0.0f);
+
                     switch (m_axis)
                     {
                         case AnatomicalAxis::CORONAL:
                         {
                             dimension = glm::vec2(m_volumeModel->GetDataSize()[0], m_volumeModel->GetDataSize()[1]);
+                            imageDimension = glm::vec2(dimension.x * spacing.x, dimension.y * spacing.y);
                             m_sliceExtent = (I32) m_volumeModel->GetDataSize()[2] - 1;
 
                             // Permute [ x, y, z ] -> [ x, y, z ]
@@ -124,6 +130,7 @@ namespace vr
                         case AnatomicalAxis::SAGITTAL:
                         {
                             dimension = glm::vec2(m_volumeModel->GetDataSize()[2], m_volumeModel->GetDataSize()[1]);
+                            imageDimension = glm::vec2(dimension.x * spacing.z, dimension.y * spacing.y);
                             m_sliceExtent = (I32) m_volumeModel->GetDataSize()[0] - 1;
 
                             // Permute [ x, y, z ] -> [ z, y, x ]
@@ -134,6 +141,7 @@ namespace vr
                         case AnatomicalAxis::HORIZONTAL:
                         {
                             dimension = glm::vec2(m_volumeModel->GetDataSize()[0], m_volumeModel->GetDataSize()[2]);
+                            imageDimension = glm::vec2(dimension.x * spacing.x, dimension.y * spacing.z);
                             m_sliceExtent = (I32) m_volumeModel->GetDataSize()[1] - 1;
 
                             // Permute [ x, y, z ] -> [ z, y, x ]
@@ -143,11 +151,12 @@ namespace vr
                         } break;
                     }
 
-                    glm::mat3 uvPermutationMatrix = glm::mat3(x_permute, y_permute, z_permute);
+                    dimension = imageDimension;
 
+                    glm::mat3 uvPermutationMatrix = glm::mat3(x_permute, y_permute, z_permute);
                     
                     const float scaleFactor = dimension.x >= dimension.y ? (currWidth / dimension.x) : (currHeight / dimension.y);
-                    const glm::vec2 imageDimensions = glm::vec2(dimension.x * scaleFactor, dimension.y * scaleFactor);;
+                    const glm::vec2 imageDimensions = glm::vec2(dimension.x * scaleFactor, dimension.y * scaleFactor);
                     
                     // Once the image has been rescaled properly, it must then be centered to the screen
                     const glm::vec3 vecToTranslateCenter = glm::vec3((currWidth - imageDimensions.x) / 2.0, (currHeight - imageDimensions.y) / 2.0, 0.0);
