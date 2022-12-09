@@ -73,6 +73,7 @@ namespace vr
 
         m_volumeShaderComposite = Shader("shaders/volume_raycast_vert.glsl", "shaders/volume_raycast_composite_frag.glsl");
         m_volumeShaderSimple    = Shader("shaders/volume_raycast_vert.glsl", "shaders/volume_raycast_frag.glsl");
+        m_volumeBoundsShader    = Shader("shaders/volume_raycast_vert.glsl", "shaders/volume_raycast_border_frag.glsl");
     }
 
     void VolumeViewWindow3D::RenderUI(GLFWwindow* window)
@@ -93,6 +94,16 @@ namespace vr
                 m_prevRotation = m_currRotation;
             }
 
+            if (ImGui::GetIO().MouseWheel != 0 && ImGui::IsWindowHovered())
+            {
+                m_distAlongZoomAxis = std::max(0.0f, std::min(m_distAlongZoomAxis - ImGui::GetIO().MouseWheel, 100.0f));
+            }
+
+            if (m_distAlongZoomAxis != m_prevDistAlongZoomAxis)
+            {
+                Refresh();
+                m_prevDistAlongZoomAxis = m_distAlongZoomAxis;
+            }
 
             if (m_leftButtonState.IsDragging() && ImGui::IsWindowFocused())
             {
@@ -141,12 +152,8 @@ namespace vr
                 
             }
 
-
             if (m_prevHeight != currHeight || m_prevWidth != currWidth)
-            {
                 Refresh();
-            }
-                
 
             if (!m_isCacheValid)
             {
@@ -171,14 +178,35 @@ namespace vr
                     const glm::vec3 spacing = glm::vec3(dataSpacing[0], dataSpacing[1], dataSpacing[2]) / (R32) dataSpacing[0];
 
                     const glm::vec3 origin  = -0.5f * (sizeV3 * spacing);
-                    const auto minDistance  = glm::length(sizeV3 * spacing) + 150.0f;
+                    
+                    // The minimum distance that the viewer can be without falling within the box when it is rotated around
+                    // In this case, this is length of the diagonal of the volume itself, accounting for spacing
+                    // the division by 2.0 is because the volume is centered at the origin
+                    const auto minDistance  = glm::length(sizeV3 * spacing / 2.0f);
+                    const auto MAX_DISTANCE = 1500.0f;
 
-                    m_cameraPos     = glm::vec3(0.0f, 0.0f, minDistance);
-                    m_projectionMat = glm::perspective(glm::radians(45.0f), aspect, 0.1f, (minDistance + 500.0f) * 2.0f);
+                    m_cameraPos     = glm::vec3(0.0f, 0.0f, minDistance + (m_distAlongZoomAxis * MAX_DISTANCE / 100.0f));
+                    m_projectionMat = glm::perspective(glm::radians(45.0f), aspect, 0.1f, (minDistance + MAX_DISTANCE) * 2.0f);
                     m_viewMat       = glm::lookAt(m_cameraPos, glm::vec3(0.0), glm::vec3(0.0f, 1.0f, 0.0f));
 
                     m_modelScaleMat = glm::scale(glm::mat4(1.0f), sizeV3 * spacing);
                     m_rotationMat   = m_currRotation;
+
+                    glBindVertexArray(m_volumeVao);
+
+                    m_volumeBoundsShader.UseProgram();
+                    m_volumeBoundsShader.SetMatrix4x4("model", m_modelScaleMat);
+                    m_volumeBoundsShader.SetMatrix4x4("view", m_viewMat);
+                    m_volumeBoundsShader.SetMatrix4x4("rotation", m_rotationMat);
+                    m_volumeBoundsShader.SetMatrix4x4("projection", m_projectionMat);
+                    m_volumeBoundsShader.SetVector3("origin", origin);
+
+                    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+                    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
+
+                    Shader* m_currShader = m_projMethod == ProjectionMethod::COMPOSITE ? 
+                                                &m_volumeShaderComposite : 
+                                                &m_volumeShaderSimple;
 
                     glActiveTexture(GL_TEXTURE0);
                     glBindTexture(GL_TEXTURE_3D, m_volumeModel->GetTextureID());
@@ -186,9 +214,6 @@ namespace vr
                     glActiveTexture(GL_TEXTURE1);
                     glBindTexture(GL_TEXTURE_2D, m_volumeModel->GetTransferTextureID("GreenRed"));
 
-                    Shader* m_currShader = m_projMethod == ProjectionMethod::COMPOSITE ? 
-                                                &m_volumeShaderComposite : 
-                                                &m_volumeShaderSimple;
 
                     m_currShader->UseProgram();
                     m_currShader->SetMatrix4x4("model", m_modelScaleMat);
@@ -210,8 +235,11 @@ namespace vr
                     m_currShader->SetVector3("volumeSize", sizeV3 * spacing);
                     m_currShader->SetVector3("cameraPosition", m_cameraPos);
 
-                    glBindVertexArray(m_volumeVao);
-                    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);;
+                    
+
+
+                    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+                    glDrawElements(GL_TRIANGLES, 36, GL_UNSIGNED_INT, 0);
                 }
                 
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);

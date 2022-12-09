@@ -1,6 +1,12 @@
 #include "VolumeViewWindow2D.h"
 #include <imgui/imgui.h>
 
+template <typename T>
+bool IsWithin(const T& val, const T& left, const T& right)
+{
+    return val >= left && val <= right;
+}
+
 namespace vr
 {
     void VolumeViewWindow2D::Initialize()
@@ -66,28 +72,53 @@ namespace vr
 
     void VolumeViewWindow2D::RenderUI(GLFWwindow* window)
     {
+        // Minor workaround to avoid causing the view to drag when interacting with the slider
+        // will try to figure out the proper way to do this later on.
+        static bool acceptDragEvents = false;
         ImGui::Begin(m_name.c_str());
         {
+            ImVec2 initialAvail = ImGui::GetContentRegionAvail();
+
             if (m_volumeModel)
             {
                 ImGui::SliderInt("Slice index", &m_currSliceIndex, 0, m_sliceExtent);
 
                 if (m_prevSliceIndex != m_currSliceIndex)
                 {
+                    acceptDragEvents = false;
                     Refresh();
                     m_prevSliceIndex = m_currSliceIndex;
                 }
             }
 
-            ImVec2 avail = ImGui::GetContentRegionAvail();
+            ImVec2 viewportAvail = ImGui::GetContentRegionAvail();
 
             m_leftButtonState.HandleInput(window);
 
-            uint32_t currWidth  = (uint32_t) avail.x;
-            uint32_t currHeight = (uint32_t) avail.y;
+            uint32_t currWidth  = (uint32_t) viewportAvail.x;
+            uint32_t currHeight = (uint32_t) viewportAvail.y;
 
             if(m_prevHeight != currHeight || m_prevWidth != currWidth)
                 Refresh();
+
+            if (m_leftButtonState.WasReleased())
+            {
+                m_prevCameraPan = m_currCameraPan;
+                acceptDragEvents = true;
+            }
+
+            if (ImGui::GetIO().MouseWheel != 0 && ImGui::IsWindowHovered())
+            {
+                m_zoomLevel = std::max(50.0f, std::min(m_zoomLevel + ImGui::GetIO().MouseWheel, 200.0f));
+                Refresh();
+            }
+
+            if (m_leftButtonState.IsDragging() && ImGui::IsWindowFocused() && acceptDragEvents)
+            {
+                glm::vec2 currDragVec = glm::vec2(m_leftButtonState.GetDragVecX(), m_leftButtonState.GetDragVecY());
+                m_currCameraPan = glm::translate(m_prevCameraPan, glm::vec3(currDragVec, 0.0f));
+                Refresh();
+            }
 
             if (!m_isCacheValid)
             {
@@ -154,16 +185,15 @@ namespace vr
                     dimension = imageDimension;
 
                     glm::mat3 uvPermutationMatrix = glm::mat3(x_permute, y_permute, z_permute);
-                    
                     const float scaleFactor = dimension.x >= dimension.y ? (currWidth / dimension.x) : (currHeight / dimension.y);
-                    const glm::vec2 imageDimensions = glm::vec2(dimension.x * scaleFactor, dimension.y * scaleFactor);
+                    const glm::vec2 imageDimensions = glm::vec2(dimension.x, dimension.y) * scaleFactor * (m_zoomLevel / 100.0f);
                     
                     // Once the image has been rescaled properly, it must then be centered to the screen
                     const glm::vec3 vecToTranslateCenter = glm::vec3((currWidth - imageDimensions.x) / 2.0, (currHeight - imageDimensions.y) / 2.0, 0.0);
                     const glm::mat4 imageCenterTranslate = glm::translate(glm::mat4(1.0f), vecToTranslateCenter);
 
                     m_modelScaleMat = glm::scale(glm::mat4(1.0f), glm::vec3(imageDimensions, 1.0));
-                    m_viewMat       = imageCenterTranslate;
+                    m_viewMat       = m_currCameraPan * imageCenterTranslate;
                     m_projectionmat = glm::ortho(0.0f, (float) currWidth, (float) currHeight, 0.0f, -1.0f, 1.0f);
 
                     // Since two textures -- the 3d volume and 2d transfer function texture -- are
@@ -205,18 +235,19 @@ namespace vr
                     m_imageQuadShader.SetFloat("sliceOffset", (float) m_currSliceIndex / (float) m_sliceExtent);
 
                     glBindVertexArray(m_volumeImageVao);
+                    glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
                     glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
                 }
 
                 glBindFramebuffer(GL_FRAMEBUFFER, 0);
             }
 
-            m_prevHeight = (uint32_t) avail.y;
-            m_prevWidth  = (uint32_t) avail.x;
+            m_prevHeight = (uint32_t) viewportAvail.y;
+            m_prevWidth  = (uint32_t) viewportAvail.x;
 
             ImGui::Image(
                 (ImTextureID) m_screenColor, 
-                { avail.x, avail.y },
+                { viewportAvail.x, viewportAvail.y },
                 ImVec2(0, 1),
                 ImVec2(1, 0)
             );

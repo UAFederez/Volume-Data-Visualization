@@ -46,7 +46,6 @@ namespace vr
             // Stores the transformation corresponding to camera panning
             glm::mat4 m_viewMat = glm::mat4(1.0f);
 
-
             MouseButtonState m_leftButtonState = { GLFW_MOUSE_BUTTON_LEFT };
 
             // Text displayed in the titlebar of the panel
@@ -61,6 +60,13 @@ namespace vr
 
             // Maximum number of slices along this axis
             I32 m_sliceExtent = 0;    
+
+            /**
+             * Variables for camera controls
+            **/
+            R32 m_zoomLevel = 100.0f;
+            glm::mat4 m_currCameraPan = glm::mat4(1.0f);
+            glm::mat4 m_prevCameraPan = glm::mat4(1.0f);
     };
 }
 
