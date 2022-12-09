@@ -2,6 +2,7 @@
 #include <imgui/imgui.h>
 #include <imgui/backends/imgui_impl_glfw.h>
 #include <imgui/backends/imgui_impl_opengl3.h>
+#include <ImGradientHDR.h>
 
 #include <functional>
 #include <thread>
@@ -71,6 +72,19 @@ namespace vr
         bool willOpenMetadataDlg = false;
         bool isProcessingFile    = false;
         std::string filePath = "";
+
+        ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
+
+        int32_t stateID = 10;
+
+        ImGradientHDRState state;
+        ImGradientHDRTemporaryState tempState;
+
+        state.AddColorMarker(0.0f, {0.0f, 0.8f, 1.0f}, 1.0f);
+        state.AddColorMarker(1.0f, {1.0f, 0.8f, 0.0f}, 1.0f);
+        state.AddAlphaMarker(0.0f, 0.0f);
+        state.AddAlphaMarker(1.0f, 1.0f);
+
 
         while (!glfwWindowShouldClose(m_window))
         {
@@ -197,10 +211,19 @@ namespace vr
                         m_volumeModel.reset(new VolumeModel(std::move(dataset), std::move(texture3d)));
                         
                         TransferFunction1D tf = {};
-                        tf.AddColorStop(0.00f, 0.0f, 0.8f, 1.0f);
-                        tf.AddColorStop(1.00f, 0.8f, 1.0f, 0.0f);
-                        tf.AddOpacityStop(0.00f, 0.00f);
-                        tf.AddOpacityStop(1.00f, 1.00f);
+                        for (int i = 0; i < state.ColorCount; i++)
+                        {
+                            ImGradientHDRState::ColorMarker marker = state.Colors[i];
+                            tf.AddColorStop(marker.Position, 
+                                            marker.Color[0] * marker.Intensity, 
+                                            marker.Color[1] * marker.Intensity, 
+                                            marker.Color[2] * marker.Intensity);
+                        }
+                        for (int i = 0; i < state.AlphaCount; i++)
+                        {
+                            ImGradientHDRState::AlphaMarker marker = state.Alphas[i];
+                            tf.AddOpacityStop(marker.Position, marker.Alpha);
+                        }
                         
                         tf.CreateTransferFunctionTexture();
 
@@ -321,20 +344,87 @@ namespace vr
                         ImGui::SliderFloat("Threshold", &firstHitThreshold, 0.0f, 1.0f);
 
                     ImGui::Text("Transfer Function");
-                    ImGui::Image(
-                        (ImTextureID) m_volumeModel->GetTransferTextureID("GreenRed"),
-                        ImVec2(availArea.x, 32),
-                        ImVec2(0, 1),
-                        ImVec2(1, 0),
-                        ImVec4(1, 1, 1, 1),
-                        ImVec4(0, 0, 0, 1)
-                    );
 
                     if (inputRayFunctionIdx != prevInputRayFunctionIdx || firstHitThreshold != prevFirstHitThreshold)
                     {
                         m_viewport3d.UpdateProjectionMethod(rayFunctionVals[inputRayFunctionIdx], firstHitThreshold);
                         prevInputRayFunctionIdx = inputRayFunctionIdx;
                         prevFirstHitThreshold   = firstHitThreshold;
+                    }
+
+                    static bool isMarkerShown = true;
+                    ImGradientHDR(stateID, state, tempState, isMarkerShown);
+
+                    if (ImGui::IsItemHovered())
+                    {
+                        ImGui::SetTooltip("Gradient");
+                    }
+
+                    if (tempState.selectedMarkerType == ImGradientHDRMarkerType::Color)
+                    {
+                        auto selectedColorMarker = state.GetColorMarker(tempState.selectedIndex);
+                        if (selectedColorMarker != nullptr)
+                        {
+                            ImGui::ColorEdit3("Color", selectedColorMarker->Color.data(), ImGuiColorEditFlags_Float);
+                            ImGui::DragFloat("Intensity", &selectedColorMarker->Intensity, 0.1f, 0.0f, 100.0f, "%f", 1.0f);
+                        }
+                    }
+
+                    if (tempState.selectedMarkerType == ImGradientHDRMarkerType::Alpha)
+                    {
+                        auto selectedAlphaMarker = state.GetAlphaMarker(tempState.selectedIndex);
+                        if (selectedAlphaMarker != nullptr)
+                        {
+                            ImGui::DragFloat("Alpha", &selectedAlphaMarker->Alpha, 0.1f, 0.0f, 1.0f, "%f", 1.0f);
+                        }
+                    }
+
+                    if (tempState.selectedMarkerType != ImGradientHDRMarkerType::Unknown)
+                    {
+                        if (ImGui::Button("Delete"))
+                        {
+                            if (tempState.selectedMarkerType == ImGradientHDRMarkerType::Color)
+                            {
+                                state.RemoveColorMarker(tempState.selectedIndex);
+                                tempState = ImGradientHDRTemporaryState{};
+                            }
+                            else if (tempState.selectedMarkerType == ImGradientHDRMarkerType::Alpha)
+                            {
+                                state.RemoveAlphaMarker(tempState.selectedIndex);
+                                tempState = ImGradientHDRTemporaryState{};
+                            }
+                        }
+                    }
+
+                    if (ImGui::Button("Apply"))
+                    {
+                        TransferFunction1D tf = {};
+                        for (int i = 0; i < state.ColorCount; i++)
+                        {
+                            ImGradientHDRState::ColorMarker marker = state.Colors[i];
+                            tf.AddColorStop(marker.Position, 
+                                marker.Color[0] * marker.Intensity, 
+                                marker.Color[1] * marker.Intensity, 
+                                marker.Color[2] * marker.Intensity);
+                        }
+                        for (int i = 0; i < state.AlphaCount; i++)
+                        {
+                            ImGradientHDRState::AlphaMarker marker = state.Alphas[i];
+                            tf.AddOpacityStop(marker.Position, marker.Alpha);
+                        }
+
+                        // Recreate transfer function texture
+                        tf.CreateTransferFunctionTexture();
+
+                        m_volumeModel->AddTransferFunction("GreenRed", tf);
+
+                        // Refresh all views
+                        m_viewport3d.Refresh();
+                        for (VolumeViewWindow2D& view : m_crossSectionViews) 
+                        {
+                            view.Refresh();
+                        }
+
                     }
                     
                 }

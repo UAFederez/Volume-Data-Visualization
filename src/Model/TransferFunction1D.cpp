@@ -18,7 +18,7 @@ GLuint TransferFunction1D::CreateTransferFunctionTexture()
     glEnable   (GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-    if (!m_isValid)
+    if (m_isValid)
         glGenTextures(1, &m_cmapTex);   
     
     glBindTexture(GL_TEXTURE_2D, m_cmapTex);

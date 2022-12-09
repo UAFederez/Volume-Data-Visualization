@@ -358,6 +358,9 @@
     <ClCompile Include="src\UI\VolumeViewWindow2D.cpp">
       <Filter>Source Files\UI</Filter>
     </ClCompile>
+    <ClCompile Include="thirdparty\ImGradientHDR\src\ImGradientHDR.cpp">
+      <Filter>Source Files\imgui</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="shaders\screen_quad_frag.glsl">
