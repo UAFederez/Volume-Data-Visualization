@@ -8,3 +8,6 @@
 [submodule "thirdparty/glm"]
 	path = thirdparty/glm
 	url = https://github.com/g-truc/glm.git
+[submodule "thirdparty/ImGradientHDR"]
+	path = thirdparty/ImGradientHDR
+	url = https://github.com/effekseer/ImGradientHDR.git
