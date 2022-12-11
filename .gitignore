@@ -1,3 +1,6 @@
+# Build folder
+build/
+
 # Data Files
 data/
 *.swp
