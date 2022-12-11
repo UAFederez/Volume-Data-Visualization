@@ -17,7 +17,6 @@ add_executable(vrend
 	src/MainApplication.cpp
 	src/Graphics/Shader.cpp
 	src/Graphics/Texture.cpp
-	src/IO/FileDialog.cpp
 	src/IO/MouseButtonState.cpp
 	src/Model/TransferFunction1D.cpp
 	src/Model/VolumeDataset.cpp
