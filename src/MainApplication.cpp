@@ -7,8 +7,8 @@
 #include <functional>
 #include <thread>
 #include <atomic>
+#include <tinyfiledialogs.h>
 
-#include "IO/FileDialog.h"
 #include "UI/VolumeViewWindow.h"
 #include "UI/VolumeViewWindow3D.h"
 
@@ -128,7 +128,13 @@ namespace vr
                 {
                     if (ImGui::MenuItem("Open", "Ctrl+O"))
                     {
-                        m_volumeFilePath = OpenFileDialog(m_window, "RAW file (*.raw)\0*.raw\0\0");
+			const char * filePatterns[] = { "*.raw", ".RAW" };
+                        m_volumeFilePath = std::string(tinyfd_openFileDialog("Choose volume dataset", 
+									     "",
+									     2, filePatterns,
+									     "Raw data files",
+									     0));
+
                         if(!m_volumeFilePath.empty())
                             willOpenMetadataDlg = true;
                     }

@@ -11,9 +11,6 @@
 [submodule "thirdparty/ImGradientHDR"]
 	path = thirdparty/ImGradientHDR
 	url = https://github.com/effekseer/ImGradientHDR.git
-[submodule "thirparty/libtinyfiledialogs"]
-	path = thirparty/libtinyfiledialogs
-	url = https://github.com/native-toolkit/libtinyfiledialogs.git
 [submodule "thirdparty/libtinyfiledialogs"]
 	path = thirdparty/libtinyfiledialogs
 	url = https://github.com/native-toolkit/libtinyfiledialogs.git
